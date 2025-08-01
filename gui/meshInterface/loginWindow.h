@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QPaintEvent>
 #include "mainapp.h"
+#include "userdatabase.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Login; }
@@ -20,11 +21,12 @@ public:
 private slots:
     void on_pushButton_clicked();
 
-    void on_userName_returnPressed();
+//    void on_userName_returnPressed();
 
 private:
     Ui::Login *ui;
     void paintEvent(QPaintEvent *event) override;
     MainApp *mainApp;
+    userdatabase *userDatabase;
 };
 #endif // LOGINWINDOW_H

@@ -1,0 +1,9 @@
+/home/KINGSNEEDTHETERRIBLE/repos/open-meshtastic-monitor/gui/meshInterface/bulid/CMakeFiles/meshInterface.dir
+/home/KINGSNEEDTHETERRIBLE/repos/open-meshtastic-monitor/gui/meshInterface/bulid/CMakeFiles/edit_cache.dir
+/home/KINGSNEEDTHETERRIBLE/repos/open-meshtastic-monitor/gui/meshInterface/bulid/CMakeFiles/rebuild_cache.dir
+/home/KINGSNEEDTHETERRIBLE/repos/open-meshtastic-monitor/gui/meshInterface/bulid/CMakeFiles/list_install_components.dir
+/home/KINGSNEEDTHETERRIBLE/repos/open-meshtastic-monitor/gui/meshInterface/bulid/CMakeFiles/install.dir
+/home/KINGSNEEDTHETERRIBLE/repos/open-meshtastic-monitor/gui/meshInterface/bulid/CMakeFiles/install/local.dir
+/home/KINGSNEEDTHETERRIBLE/repos/open-meshtastic-monitor/gui/meshInterface/bulid/CMakeFiles/install/strip.dir
+/home/KINGSNEEDTHETERRIBLE/repos/open-meshtastic-monitor/gui/meshInterface/bulid/CMakeFiles/meshInterface_autogen_timestamp_deps.dir
+/home/KINGSNEEDTHETERRIBLE/repos/open-meshtastic-monitor/gui/meshInterface/bulid/CMakeFiles/meshInterface_autogen.dir

@@ -11,9 +11,36 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::Login)
     , mainApp(nullptr)
+    , userDatabase(nullptr)
 {
     ui->setupUi(this);
     this->setWindowTitle("Login - Mesh Monitor");
+
+    userDatabase = new userdatabase(this);
+    if (!userDatabase->initDatabase()) {
+        QMessageBox::critical(this, "Database Error",
+                              "Failed to initialize user database!");
+        return;
+    }
+
+    if (userDatabase->getAllUsers().isEmpty()) {
+        qDebug() << "No users found. Creating default users...";
+
+        // Add your existing user
+        userDatabase->addUser("dennis", "1923");
+
+        // Add an admin user
+        userDatabase->addUser("admin", "admin");
+
+        QMessageBox::information(this, "First Run",
+                                 "Default users created:\n"
+                                 "dennis / 1923\n"
+                                 "admin / admin\n\n"
+                                 "Database initialized successfully!");
+    }
+
+    qDebug() << "Database ready with" << userDatabase->getAllUsers().size() << "users";
+
 }
 
 MainWindow::~MainWindow()
@@ -24,19 +51,20 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_clicked()
 {
-    QMap<QString, QString> dict = { {"dennis", "1923"} };
-
     QString username = ui->userName->text();
     QString password = ui->Password->text();
 
-    if(dict.contains(username) && dict[username] == password) {
+    if (userDatabase && userDatabase->authenticateUser(username, password)) {
+        qDebug() << "Login successful for user:" << username;
         mainApp = new MainApp();
         mainApp->show();
         this->hide();
-
-
     } else {
-        QMessageBox::warning(this,"Login Failed!", "Bad Credentials!");
+        qDebug() << "Login failed for user:" << username;
+        QMessageBox::warning(this, "Login Failed!", "Invalid username or password!");
+
+        // Clear the password field for security
+        ui->Password->clear();
     }
 
 }

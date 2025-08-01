@@ -1,0 +1,2 @@
+set(__QT_DEPLOY_TARGET_meshInterface_FILE /home/KINGSNEEDTHETERRIBLE/repos/open-meshtastic-monitor/gui/meshInterface/bulid/meshInterface)
+set(__QT_DEPLOY_TARGET_meshInterface_TYPE EXECUTABLE)
