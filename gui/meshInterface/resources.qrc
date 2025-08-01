@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>green_topo.jpg</file>
+        <file>topo-map.jpeg</file>
+        <file>topo-map1.jpeg</file>
+    </qresource>
+</RCC>
