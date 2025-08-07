@@ -2,6 +2,7 @@
 #define MAINAPP_H
 
 #include <QMainWindow>
+#include <QPaintEvent>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -16,6 +17,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    void paintEvent(QPaintEvent *event) override;
 
 signals:
 

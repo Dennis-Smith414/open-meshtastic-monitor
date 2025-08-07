@@ -177,7 +177,6 @@ QList<User> userdatabase::getAllUsers() {
             users.append(user);
         }
     }
-
     return users;
 }
 
@@ -194,27 +193,22 @@ bool userdatabase::userExists(const QString &username) {
 }
 
 QString userdatabase::hashPassword(const QString &password) {
-    // Generate a random salt
     QString salt = generateSalt();
 
-    // Combine password and salt, then hash with SHA-256
     QString combined = password + salt;
     QByteArray hash = QCryptographicHash::hash(combined.toUtf8(), QCryptographicHash::Sha256);
 
-    // Return salt + hash (first 32 chars are salt, rest is hash)
     return salt + hash.toHex();
 }
 
 bool userdatabase::verifyPassword(const QString &password, const QString &storedHash) {
     if (storedHash.length() < 32) {
-        return false; // Invalid hash format
+        return false;
     }
 
-    // Extract salt (first 32 characters)
     QString salt = storedHash.left(32);
     QString hash = storedHash.mid(32);
 
-    // Hash the provided password with the same salt
     QString combined = password + salt;
     QByteArray newHash = QCryptographicHash::hash(combined.toUtf8(), QCryptographicHash::Sha256);
 

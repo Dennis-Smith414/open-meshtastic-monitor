@@ -39,8 +39,12 @@ cmake_minimum_required(VERSION 3.16)
                ${PROJECT_SOURCES}
            )
        else()
+           find_package(Qt5 REQUIRED COMPONENTS Core)
+
            add_executable(meshInterface
                ${PROJECT_SOURCES}
+               meshtastic_handler.h meshtastic_handler.cpp
+
            )
        endif()
    endif()
@@ -49,7 +53,8 @@ cmake_minimum_required(VERSION 3.16)
    target_link_libraries(meshInterface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Sql)
    if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
        target_link_libraries(meshInterface PRIVATE Qt6::Core)
-   endif()
+   target_link_libraries(meshInterface PRIVATE Qt5::Core)
+endif()
 
    # macOS/iOS bundle settings
    if(${QT_VERSION} VERSION_LESS 6.1.0)
