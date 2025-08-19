@@ -36,9 +36,9 @@ if not ports:
     exit(1)
 
 print(f"Found ports: {ports}", flush=True)
-print(f"Connecting to {ports[0]}...", flush=True)
+print(f"Connecting to {ports[2]}...", flush=True)
 try:
-    interface = serial_interface.SerialInterface(ports[0])
+    interface = serial_interface.SerialInterface(ports[2])
     pub.subscribe(onReceive, "meshtastic.receive")
     print("Connected! Waiting for messages...", flush=True)
     while True:
