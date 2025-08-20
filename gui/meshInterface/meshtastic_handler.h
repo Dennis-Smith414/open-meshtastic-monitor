@@ -48,6 +48,7 @@ private:
     void processData(const QByteArray& data);
     void processLine(const QString& line);
 
+    QJsonObject parseMessage(const QString& line);
     QSerialPort* serialPort;
     Connection_Status currentState;
     int msgCount;

@@ -11,7 +11,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Find Qt - try Qt6 first, fallback to Qt5
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets Sql)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Sql)
-find_package(Qt6 REQUIRED COMPONENTS SerialPort)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS SerialPort)
 
 set(PROJECT_SOURCES
     main.cpp

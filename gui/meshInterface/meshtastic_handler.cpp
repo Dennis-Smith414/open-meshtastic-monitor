@@ -264,7 +264,7 @@ void meshtastic_handler::processLine(const QString& line)
     qDebug() << "[MESHTASTIC] Line length:" << line.length();
     qDebug() << "[MESHTASTIC] Line starts with '{':" << line.startsWith('{');
 
-    // Look for JSON data (Meshtastic can output JSON via serial)
+    // Look for JSON data
     if (line.startsWith('{')) {
         qDebug() << "[MESHTASTIC] Detected JSON data, attempting to parse";
 
