@@ -246,7 +246,7 @@ void meshtastic_handler::processData(const QByteArray& data)
 
         if (!line.isEmpty()) {
             qDebug() << "[MESHTASTIC] Processing non-empty line:" << line;
-            processLine(line);
+           // processLine(line);
         } else {
             qDebug() << "[MESHTASTIC] Skipping empty line";
         }
@@ -258,11 +258,16 @@ void meshtastic_handler::processData(const QByteArray& data)
     qDebug() << "[MESHTASTIC] Remaining buffer size:" << dataBuffer.size();
 }
 
-void meshtastic_handler::processLine(const QString& line)
+
+
+
+/*oid meshtastic_handler::processLine(const QString& line)
 {
     qDebug() << "[MESHTASTIC] processLine() called with:" << line;
     qDebug() << "[MESHTASTIC] Line length:" << line.length();
     qDebug() << "[MESHTASTIC] Line starts with '{':" << line.startsWith('{');
+
+    emit rawDataReceived(line);
 
     // Look for JSON data
     if (line.startsWith('{')) {
@@ -300,4 +305,5 @@ void meshtastic_handler::processLine(const QString& line)
     }
 
     qDebug() << "[MESHTASTIC] processLine() complete";
-}
+}*/
+

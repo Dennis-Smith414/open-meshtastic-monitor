@@ -12,6 +12,15 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets Sql)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Sql)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS SerialPort)
+##Protobuf bs
+find_package(Protobuf REQUIRED)
+find_package(absl REQUIRED)
+
+# Include dirs for Protobuf
+include_directories(${Protobuf_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/meshtastic)
+
+
 
 set(PROJECT_SOURCES
     main.cpp
@@ -26,6 +35,24 @@ set(PROJECT_SOURCES
     userdatabase.cpp
     meshtastic_handler.h
     meshtastic_handler.cpp
+#---protobuf scheamas
+    meshtastic/mesh.pb.cc       
+    meshtastic/telemetry.pb.cc
+    meshtastic/portnums.pb.cc
+    meshtastic/config.pb.cc
+    meshtastic/channel.pb.cc
+    meshtastic/device_ui.pb.cc
+    meshtastic/module_config.pb.cc
+    meshtastic/xmodem.pb.cc
+    meshtastic/mesh.pb.h         
+    meshtastic/telemetry.pb.h
+    meshtastic/portnums.pb.h
+    meshtastic/config.pb.h
+    meshtastic/channel.pb.h
+    meshtastic/device_ui.pb.h
+    meshtastic/module_config.pb.h
+    meshtastic/xmodem.pb.h
+
 )
 
 # Create executable - works for both Qt5 and Qt6
@@ -48,6 +75,13 @@ target_link_libraries(meshInterface PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Sql
     Qt${QT_VERSION_MAJOR}::SerialPort
+   
+    ${Protobuf_LIBRARIES}
+    absl::log
+    absl::log_internal_check_op
+    absl::log_internal_message
+    absl::strings
+    absl::base
 )
 
 # Bundle settings

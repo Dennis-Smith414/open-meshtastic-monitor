@@ -38,6 +38,9 @@ signals:
     void packetReceived(const QJsonObject& packet);
     void logMessage(const QString& message, const QString& level = "info");
     void errorOccurred(const QString& error);
+    void rawDataReceived(const QString& rawData);
+
+
 
 private slots:
     void onSerialDataReady();
