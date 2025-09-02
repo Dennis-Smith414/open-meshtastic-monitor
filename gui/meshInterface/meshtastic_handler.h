@@ -9,6 +9,11 @@
 #include <QTimer>
 #include <QDebug>
 
+//protobuf defines
+#include "meshtastic/mesh.pb.h"
+#include "meshtastic/portnums.pb.h"
+#include "meshtastic/telemetry.pb.h"
+
 class meshtastic_handler : public QObject
 {
     Q_OBJECT
@@ -29,9 +34,13 @@ public:
     bool isRunning() const;
     int messageCount() const;
 
+
 public slots:
     void startMeshtastic(const QString& portName = "");
     void stopMeshtastic();
+    QJsonObject parseDebugPacket(const QString& logLine);
+    void parseTextData(QString logLine);
+    void parseBatteryData(QString logLine);
 
 signals:
     void stateChanged(Connection_Status state);
@@ -39,8 +48,6 @@ signals:
     void logMessage(const QString& message, const QString& level = "info");
     void errorOccurred(const QString& error);
     void rawDataReceived(const QString& rawData);
-
-
 
 private slots:
     void onSerialDataReady();
@@ -56,6 +63,7 @@ private:
     Connection_Status currentState;
     int msgCount;
     QByteArray dataBuffer;
+    void processProtobufPacket(const meshtastic::MeshPacket& packet);
 };
 
 #endif // MESHTASTIC_HANDLER_H

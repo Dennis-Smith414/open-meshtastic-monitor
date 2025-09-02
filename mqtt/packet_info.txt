@@ -1,0 +1,1 @@
+{"from": 1128071720, "to": 4294967295, "id": 3225866299, "rxTime": null, "rxSnr": null, "rxRssi": null, "hopLimit": 3, "hopStart": 3, "fromId": "!433d0228", "toId": "^all", "decoded": {"portnum": "TELEMETRY_APP", "text": null, "bitfield": 1, "latitude": null, "longitude": null, "altitude": null, "batteryLevel": null}}

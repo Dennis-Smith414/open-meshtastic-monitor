@@ -1,4 +1,5 @@
 #include "meshtastic_handler.h"
+#include <QFile>
 
 meshtastic_handler::meshtastic_handler(QObject* parent)
     : QObject(parent), currentState(Disconnected), msgCount(0)
@@ -218,92 +219,321 @@ void meshtastic_handler::onSerialError(QSerialPort::SerialPortError error)
     }
 }
 
-void meshtastic_handler::processData(const QByteArray& data)
-{
-    qDebug() << "[MESHTASTIC] processData() called with" << data.size() << "bytes";
-    qDebug() << "[MESHTASTIC] Current buffer size before append:" << dataBuffer.size();
+// void meshtastic_handler::processProtobufPacket(const meshtastic::MeshPacket& packet)
+// {
+//     qDebug() << "[MESHTASTIC] Processing protobuf packet";
+//     qDebug() << "[MESHTASTIC] From:" << QString::number(packet.from(), 16);
+//     qDebug() << "[MESHTASTIC] To:" << QString::number(packet.to(), 16);
 
-    dataBuffer.append(data);
-    qDebug() << "[MESHTASTIC] Buffer size after append:" << dataBuffer.size();
-    qDebug() << "[MESHTASTIC] Buffer contents:" << QString::fromUtf8(dataBuffer);
 
-    // Process complete lines
-    int linesProcessed = 0;
-    while (dataBuffer.contains('\n')) {
-        qDebug() << "[MESHTASTIC] Found newline in buffer, processing line" << (linesProcessed + 1);
 
-        int lineEnd = dataBuffer.indexOf('\n');
-        qDebug() << "[MESHTASTIC] Line end position:" << lineEnd;
+//     QJsonObject jsonPacket;
+//     jsonPacket["fromID"] = QString::number(packet.from(), 16);
+//     jsonPacket["toID"] = QString::number(packet.to(), 16);
+//     jsonPacket["id"] = static_cast<qint64>(packet.id());
 
-        QByteArray lineData = dataBuffer.left(lineEnd);
-        qDebug() << "[MESHTASTIC] Extracted line data:" << QString::fromUtf8(lineData);
+//     // if (packet.has_rx_rssi()) {
+//     //     jsonPacket["rxRssi"] = packet.rx_rssi();s
+//     // }
 
-        dataBuffer.remove(0, lineEnd + 1);
-        qDebug() << "[MESHTASTIC] Remaining buffer size:" << dataBuffer.size();
+//     if (packet.has_decoded()) {
+//         QJsonObject decoded;
+//         const auto& data = packet.decoded();
 
-        QString line = QString::fromUtf8(lineData).trimmed();
-        qDebug() << "[MESHTASTIC] Trimmed line:" << line;
+//         decoded["portnum"] = static_cast<int>(data.portnum());
 
-        if (!line.isEmpty()) {
-            qDebug() << "[MESHTASTIC] Processing non-empty line:" << line;
-           // processLine(line);
-        } else {
-            qDebug() << "[MESHTASTIC] Skipping empty line";
-        }
+//         if (data.portnum() == meshtastic::PortNum::TEXT_MESSAGE_APP) {
+//             decoded["text"] = QString::fromUtf8(data.payload().c_str());
+//         } else {
+//             decoded["text"] = QJsonValue::Null;
+//         }
 
-        linesProcessed++;
+//         if (data.has_bitfield()) {
+//          //   decoded["bitfield"] = data.bitfield();
+//         }
+
+//         decoded["latitude"] = QJsonValue::Null;
+//         decoded["longitude"] = QJsonValue::Null;
+//         decoded["altitude"] = QJsonValue::Null;
+//         decoded["batteryLevel"] = QJsonValue::Null;
+
+//         if (data.portnum() == meshtastic::PortNum::POSITION_APP) {
+//             // Parse position data
+//             meshtastic::Position pos;
+//             if (pos.ParseFromString(data.payload())) {
+//                 if (pos.has_latitude_i()) {
+//                     decoded["latitude"] = pos.latitude_i() / 1e7;
+//                 }
+//                 if (pos.has_longitude_i()) {
+//                     decoded["longitude"] = pos.longitude_i() / 1e7;
+//                 }
+//                 if (pos.has_altitude()) {
+//                     decoded["altitude"] = pos.altitude();
+//                 }
+//             }
+//         }
+
+//         if (data.portnum() == meshtastic::PortNum::TELEMETRY_APP) {
+//             meshtastic::Telemetry telemetry;
+//             if (telemetry.ParseFromString(data.payload())) {
+//                 if (telemetry.has_device_metrics() && telemetry.device_metrics().has_battery_level()) {
+//                     decoded["batteryLevel"] = static_cast<qint64>(telemetry.device_metrics().battery_level());
+//                 }
+//             }
+//         }
+
+//     }
+
+//     //avoid flood on un needed packets
+//     if (packet.from() != 0 || packet.to() != 0) {
+//         emit packetReceived(jsonPacket);
+//     }
+//     return;
+//     //emit packetReceived(jsonPacket);
+// }
+
+// void meshtastic_handler::processData(const QByteArray& data) {
+//     qDebug() << "[MESHTASTIC] processData() called with" << data.size() << "bytes";
+//     dataBuffer.append(data);
+
+//     // Look for protobuf packet markers
+//     while (dataBuffer.size() >= 4) { // Minimum packet size
+//         // Try to parse as protobuf
+//         meshtastic::MeshPacket packet;
+
+//         //need to handle framing here maybe
+//         // - Length prefix
+//         // - Magic bytes
+//         // - Or other framing mechanisms
+
+//         if (packet.ParseFromArray(dataBuffer.data(), dataBuffer.size())) {
+//             qDebug() << "[MESHTASTIC] Successfully parsed protobuf packet!";
+//             processProtobufPacket(packet);
+//             msgCount++;
+//             // need to determine how much data was consumed
+//             dataBuffer.clear();
+//             break;
+//         } else {
+//             // Remove one byte and try again
+//             dataBuffer.remove(0, 1);
+//         }
+//     }
+// }
+
+QJsonObject meshtastic_handler::parseDebugPacket(const QString& logLine) {
+    QJsonObject packet;
+
+    // Look for lines that contain packet info - expand the keywords
+    if (!logLine.contains("decoded message") &&
+        !logLine.contains("handleReceived") &&
+        !logLine.contains("Routing sniffing") &&
+        !logLine.contains("Delivering rx packet") &&
+        !logLine.contains("Forwarding to phone")) {
+        return packet;
     }
 
-    qDebug() << "[MESHTASTIC] processData() complete, processed" << linesProcessed << "lines";
-    qDebug() << "[MESHTASTIC] Remaining buffer size:" << dataBuffer.size();
+    // Extract using more flexible regex patterns
+    QRegularExpression idRegex("id=0x([a-fA-F0-9]+)");
+    QRegularExpressionMatch idMatch = idRegex.match(logLine);
+    if (idMatch.hasMatch()) {
+        packet["id"] = idMatch.captured(1);
+    }
+
+    QRegularExpression fromRegex("fr=0x([a-fA-F0-9]+)");
+    QRegularExpressionMatch fromMatch = fromRegex.match(logLine);
+    if (fromMatch.hasMatch()) {
+        packet["fromId"] = fromMatch.captured(1);
+    }
+
+    QRegularExpression toRegex("to=0x([a-fA-F0-9]+)");
+    QRegularExpressionMatch toMatch = toRegex.match(logLine);
+    if (toMatch.hasMatch()) {
+        packet["toId"] = toMatch.captured(1);
+    }
+
+    QRegularExpression rssiRegex("rxRSSI=(-?\\d+)");
+    QRegularExpressionMatch rssiMatch = rssiRegex.match(logLine);
+    if (rssiMatch.hasMatch()) {
+        packet["rxRssi"] = rssiMatch.captured(1).toInt();
+    }
+
+    QRegularExpression snrRegex("rxSNR=([\\d\\.]+)");
+    QRegularExpressionMatch snrMatch = snrRegex.match(logLine);
+    if (snrMatch.hasMatch()) {
+        packet["rxSnr"] = snrMatch.captured(1).toDouble();
+    }
+
+    QRegularExpression hopRegex("HopLim=([\\d]+)");
+    QRegularExpressionMatch hopMatch = hopRegex.match(logLine);
+    if (hopMatch.hasMatch()) {
+        packet["hopLimit"] = hopMatch.captured(1).toInt();
+    }
+
+    QRegularExpression portRegex("Portnum=([\\d]+)");
+    QRegularExpressionMatch portMatch = portRegex.match(logLine);
+    if (portMatch.hasMatch()) {
+        QJsonObject decoded;
+        decoded["portnum"] = portMatch.captured(1).toInt();
+        packet["decoded"] = decoded;
+    }
+
+    return packet;
 }
 
+void meshtastic_handler::processData(const QByteArray& data) {
+    qDebug() << "[MESHTASTIC] processData() called with" << data.size() << "bytes";
+    dataBuffer.append(data);
+    qDebug() << "[MESHTASTIC] Data buffer size:" << dataBuffer.size();
 
+    QString packet;
 
+    // Process the buffer while there's enough data
+    while (dataBuffer.size() >= 4) { // Minimum size for magic bytes + length
+        // Check for Meshtastic Protobuf packet (magic bytes: 0x94 0xC3)
+        if (dataBuffer.size() >= 4 &&
+            static_cast<unsigned char>(dataBuffer[0]) == 0x94 &&
+            static_cast<unsigned char>(dataBuffer[1]) == 0xC3) {
+            // Read 2-byte length prefix (big-endian)
+            quint16 packetLength = (static_cast<unsigned char>(dataBuffer[2]) << 8) |
+                                   static_cast<unsigned char>(dataBuffer[3]);
 
-/*oid meshtastic_handler::processLine(const QString& line)
-{
-    qDebug() << "[MESHTASTIC] processLine() called with:" << line;
-    qDebug() << "[MESHTASTIC] Line length:" << line.length();
-    qDebug() << "[MESHTASTIC] Line starts with '{':" << line.startsWith('{');
+            qDebug() << "[MESHTASTIC] Detected Protobuf packet with length:" << packetLength;
+            // Check if we have the full packet (magic bytes + length + payload)
 
-    emit rawDataReceived(line);
+            // Check if we have the full packet (magic bytes + length + payload)
+            if (dataBuffer.size() < packetLength + 4) {
+                qDebug() << "[MESHTASTIC] Incomplete Protobuf packet, waiting for more data";
+                return;
+            }
 
-    // Look for JSON data
-    if (line.startsWith('{')) {
-        qDebug() << "[MESHTASTIC] Detected JSON data, attempting to parse";
+            // Extract and parse the Protobuf packet
+            QByteArray packetData = dataBuffer.mid(4, packetLength);
+            dataBuffer.remove(0, packetLength + 4); // Remove processed data
 
-        QJsonParseError error;
-        QJsonDocument doc = QJsonDocument::fromJson(line.toUtf8(), &error);
-
-        qDebug() << "[MESHTASTIC] JSON parse result - Error:" << error.error;
-        qDebug() << "[MESHTASTIC] JSON parse error string:" << error.errorString();
-        qDebug() << "[MESHTASTIC] JSON parse error offset:" << error.offset;
-
-        if (error.error == QJsonParseError::NoError) {
-            qDebug() << "[MESHTASTIC] JSON parsed successfully!";
-
-            QJsonObject packet = doc.object();
-            qDebug() << "[MESHTASTIC] JSON object keys:" << packet.keys();
-
-            msgCount++;
-            qDebug() << "[MESHTASTIC] PACKET RECEIVED from serial! Count incremented to:" << msgCount;
-            qDebug() << "[MESHTASTIC] Packet content:" << doc.toJson(QJsonDocument::Compact);
-
-            emit packetReceived(packet);
-            qDebug() << "[MESHTASTIC] packetReceived signal emitted";
+            meshtastic::MeshPacket packet;
+            if (packet.ParseFromArray(packetData.constData(), packetData.size())) {
+                qDebug() << "[MESHTASTIC] Successfully parsed Protobuf packet!";
+              //  processProtobufPacket(packet);
+                msgCount++;
+                qDebug() << "[MESHTASTIC] Message count incremented to:" << msgCount;
+            } else {
+                qDebug() << "[MESHTASTIC] Failed to parse Protobuf packet";
+                emit logMessage("Failed to parse Protobuf packet", "error");
+            }
         } else {
-            qDebug() << "[MESHTASTIC] JSON Parse Error at offset" << error.offset << ":" << error.errorString();
-            qDebug() << "[MESHTASTIC] Problematic JSON:" << line;
-            emit logMessage("JSON Parse Error: " + error.errorString(), "error");
+            // Assume data is debug/log output (ASCII text or ANSI codes)
+            qDebug() << "[MESHTASTIC] Processing as debug/log data";
+            // Find the end of a line (e.g., \r\n or \n)
+            int lineEnd = dataBuffer.indexOf('\n');
+            if (lineEnd == -1) {
+                qDebug() << "[MESHTASTIC] No complete debug line, waiting for more data";
+                return;
+            }
+
+            // Extract the line
+            QByteArray logData = dataBuffer.left(lineEnd + 1);
+            dataBuffer.remove(0, lineEnd + 1);
+
+            // Clean ANSI escape codes
+            QString logLine = QString::fromUtf8(logData);
+            QRegularExpression ansiRegex("\x1B\\[[0-9;]*m");
+            logLine.remove(ansiRegex);
+
+
+            QJsonObject debugPacket = parseDebugPacket(logLine);
+            if (!debugPacket.isEmpty()) {
+                emit packetReceived(debugPacket);
+            }
+
+            if (logLine.contains("Battery")) {
+                parseBatteryData(logLine);
+            }
+
+            if (logLine.contains("Received text msg")) {
+                parseTextData(logLine);
+            }
+            emit logMessage("FULL PACKET" + logLine);
         }
-    } else {
-        qDebug() << "[MESHTASTIC] Non-JSON line received, logging as debug";
-        // Log other serial output
-        emit logMessage("Serial: " + line, "debug");
-        qDebug() << "[MESHTASTIC] Debug message emitted for line:" << line;
+    }
+}
+
+// void MainApp::onPacketReceived(const QJsonObject& packet) {
+//     static int packetCount = 0;
+//     packetCount++;
+
+//     QString Log;
+
+//     if (packet.contains("fromId")) {
+//         Log += QString("From: %1 ").arg(packet["fromId"].toString());
+//     }
+
+//     if (packet.contains("toId")) {
+//         Log += QString("To: %1 ").arg(packet["toId"].toString());
+//     }
+
+//     if (packet.contains("rxRssi")) {
+//         Log += QString("RSSI: %1dBm ").arg(packet["rxRssi"].toInt());
+//     }
+
+//     if (packet.contains("rxSnr")) {
+//         Log += QString("SNR: %1dB ").arg(packet["rxSnr"].toDouble());
+//     }
+
+//     if (packet.contains("hopLimit")) {
+//         Log += QString("Hops: %1 ").arg(packet["hopLimit"].toInt());
+//     }
+
+//     // Create formatted string for the text box
+//     QString displayText;
+//     displayText += QString("=== JSON Packet #%1 ===\n").arg(packetCount);
+
+//     displayText += QString("Log: %1\n").arg(Log);
+
+//     displayText += QString("Raw JSON: %1\n").arg(QString::fromUtf8(QJsonDocument(packet).toJson(QJsonDocument::Compact)));
+//     displayText += "------------------------\n";
+//     ui->packet_view->appendPlainText(displayText);
+// }
+
+void meshtastic_handler::parseTextData(QString logLine) {
+    QJsonObject textData;
+     QRegularExpression textMsgRegex("Received text msg from=0x([a-fA-F0-9]+), id=0x([a-fA-F0-9]+), msg=(.+)$");
+     QRegularExpressionMatch match = textMsgRegex.match(logLine);
+     if (match.hasMatch()) {
+        textData["fromId"] = match.captured(1);
+        textData["messageId"] = match.captured(2);
+         QString cleanText = match.captured(3);
+         cleanText = cleanText.remove('\r').remove('\n').trimmed();
+         textData["text"] = cleanText;
+     }
+     QString textDataString = QJsonDocument(textData).toJson(QJsonDocument::Compact);
+     emit logMessage(textDataString);
+}
+
+void meshtastic_handler::parseBatteryData(QString logLine) {
+    QJsonObject batteryData;
+    QRegularExpression batteryRegex(R"(Battery:\s*usbPower=(\d+),\s*isCharging=(\d+),\s*batMv=(\d+),\s*batPct=(\d+))");
+    QRegularExpressionMatch match = batteryRegex.match(logLine);
+    if (match.hasMatch()) {
+        int usbPower = match.captured(1).toInt();
+        int isCharging = match.captured(2).toInt();
+        int batteryVoltage = match.captured(3).toInt(); // in millivolts
+        int batteryPercent = match.captured(4).toInt();
+
+        // Convert to convenience values
+        double voltageVolts = batteryVoltage / 1000.0;
+        QString chargingStatus = (isCharging == 1) ? "charging" : "not_charging";
+        QString powerSource = (usbPower == 1) ? "usb" : "battery";
+
+        // Create formatted string
+        QString batteryInfo = QString("BATTERY: %1%% (%2V) - %3 via %4")
+                                  .arg(batteryPercent)
+                                  .arg(voltageVolts, 0, 'f', 2)
+                                  .arg(chargingStatus)
+                                  .arg(powerSource);
+
+        emit logMessage(batteryInfo);
+
+        qDebug() << "[MESHTASTIC] Parsed battery data - Voltage:" << match.captured(3) << "mV, Percent:" << match.captured(4) << "%";
     }
 
-    qDebug() << "[MESHTASTIC] processLine() complete";
-}*/
-
+}
