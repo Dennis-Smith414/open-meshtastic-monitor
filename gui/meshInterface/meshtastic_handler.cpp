@@ -175,7 +175,6 @@ QString meshtastic_handler::findMeshtasticPort()
     }
 
     qDebug() << "[MESHTASTIC] No specific match found, looking for any USB port";
-    // If no specific match, try the first USB port
     for (const QSerialPortInfo& port : ports) {
         qDebug() << "[MESHTASTIC] Checking if port is USB:" << port.portName();
         if (port.portName().contains("USB")) {

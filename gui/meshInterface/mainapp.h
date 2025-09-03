@@ -26,6 +26,7 @@ private:
     meshtastic_handler* meshHandler;
     void updateConnectionStatusDisplay();
     QTimer *timer;
+    void createGpsInfoWidget();
     //void moveBackground();
 
 signals:

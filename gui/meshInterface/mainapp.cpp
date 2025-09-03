@@ -21,73 +21,72 @@ MainApp::MainApp(QWidget *parent)
     qDebug() << "ui->setupUi completed";
 
     // Check centralwidget
-    if (!ui->centralwidget) {
-        qDebug() << "ERROR: centralwidget is null!";
-        return;
-    }
-    qDebug() << "centralwidget exists";
+    // if (!ui->centralwidget) {
+    //     qDebug() << "ERROR: centralwidget is null!";
+    //     return;
+    // }
+    // qDebug() << "centralwidget exists";
 
-    // Log UI widget names
-    qDebug() << "Available UI widgets:" << ui->centralwidget->findChildren<QWidget*>().count();
-    for (QWidget* widget : ui->centralwidget->findChildren<QWidget*>()) {
-        qDebug() << "Widget:" << widget->objectName();
-    }
+    // // Log UI widget names
+    // qDebug() << "Available UI widgets:" << ui->centralwidget->findChildren<QWidget*>().count();
+    // for (QWidget* widget : ui->centralwidget->findChildren<QWidget*>()) {
+    //     qDebug() << "Widget:" << widget->objectName();
+    // }
 
-    // Verify layout
-    if (ui->centralwidget->layout()) {
-        qDebug() << "Centralwidget layout:" << ui->centralwidget->layout()->metaObject()->className();
-        // Log layout contents
-        QGridLayout* gridLayout = qobject_cast<QGridLayout*>(ui->centralwidget->layout());
-        if (gridLayout) {
-            qDebug() << "Grid layout found, item count:" << gridLayout->count();
-            for (int i = 0; i < gridLayout->count(); ++i) {
-                QLayoutItem* item = gridLayout->itemAt(i);
-                if (item && item->widget()) {
-                    qDebug() << "Layout item" << i << "widget:" << item->widget()->objectName();
-                }
-            }
-        }
-    } else {
-        qDebug() << "No layout found on centralwidget, creating new QVBoxLayout";
-        QVBoxLayout *mainLayout = new QVBoxLayout(ui->centralwidget);
-        if (ui->label) {
-            qDebug() << "Adding label to layout";
-            mainLayout->addWidget(ui->label);
-        } else {
-            qDebug() << "ERROR: label is null!";
-        }
-        if (ui->packet_view) {
-            qDebug() << "Adding packet_view to layout";
-            mainLayout->addWidget(ui->packet_view);
-            ui->packet_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        } else {
-            qDebug() << "ERROR: packet_view is null!";
-        }
-        if (ui->pushButton) {
-            qDebug() << "Adding pushButton to layout";
-            mainLayout->addWidget(ui->pushButton);
-            ui->pushButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-        } else {
-            qDebug() << "ERROR: pushButton is null!";
-        }
-        mainLayout->setContentsMargins(10, 10, 10, 10);
-        mainLayout->setSpacing(10);
-        ui->centralwidget->setLayout(mainLayout);
-        qDebug() << "Layout created and set on centralwidget";
-    }
+    // // Verify layout
+    // if (ui->centralwidget->layout()) {
+    //     qDebug() << "Centralwidget layout:" << ui->centralwidget->layout()->metaObject()->className();
+    //     // Log layout contents
+    //     QGridLayout* gridLayout = qobject_cast<QGridLayout*>(ui->centralwidget->layout());
+    //     if (gridLayout) {
+    //         qDebug() << "Grid layout found, item count:" << gridLayout->count();
+    //         for (int i = 0; i < gridLayout->count(); ++i) {
+    //             QLayoutItem* item = gridLayout->itemAt(i);
+    //             if (item && item->widget()) {
+    //                 qDebug() << "Layout item" << i << "widget:" << item->widget()->objectName();
+    //             }
+    //         }
+    //     }
+    // } else {
+    //     qDebug() << "No layout found on centralwidget, creating new QVBoxLayout";
+    //     QVBoxLayout *mainLayout = new QVBoxLayout(ui->centralwidget);
+    //     if (ui->label) {
+    //         qDebug() << "Adding label to layout";
+    //         mainLayout->addWidget(ui->label);
+    //     } else {
+    //         qDebug() << "ERROR: label is null!";
+    //     }
+    //     if (ui->packet_view) {
+    //         qDebug() << "Adding packet_view to layout";
+    //         mainLayout->addWidget(ui->packet_view);
+    //         ui->packet_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    //     } else {
+    //         qDebug() << "ERROR: packet_view is null!";
+    //     }
+    //     if (ui->pushButton) {
+    //         qDebug() << "Adding pushButton to layout";
+    //         mainLayout->addWidget(ui->pushButton);
+    //         ui->pushButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    //     } else {
+    //         qDebug() << "ERROR: pushButton is null!";
+    //     }
+    //     mainLayout->setContentsMargins(10, 10, 10, 10);
+    //     mainLayout->setSpacing(10);
+    //     ui->centralwidget->setLayout(mainLayout);
+    //     qDebug() << "Layout created and set on centralwidget";
+    // }
 
-    // Configure packet_view
-    if (ui->packet_view) {
-        qDebug() << "Configuring packet_view";
-        ui->packet_view->setMaximumBlockCount(100);
-        ui->packet_view->setReadOnly(true);
-        ui->packet_view->appendPlainText("--- Application Started ---");
-        qDebug() << "packet_view configured and initialized";
-    } else {
-        qDebug() << "ERROR: packet_view is null during configuration!";
-    }
+    // // Configure packet_view
+    // if (ui->packet_view) {
+    //     qDebug() << "Configuring packet_view";
+    //     ui->packet_view->setMaximumBlockCount(100);
+    //     ui->packet_view->setReadOnly(true);
+    //     ui->packet_view->appendPlainText("--- Application Started ---");
+    //     qDebug() << "packet_view configured and initialized";
+    // } else {
+    //     qDebug() << "ERROR: packet_view is null during configuration!";
+    // }
 
-    // Resize to screen size
     QScreen *screen = QGuiApplication::primaryScreen();
     if (screen) {
         qDebug() << "Resizing window to screen size";
@@ -140,6 +139,8 @@ MainApp::MainApp(QWidget *parent)
 
     qDebug() << "MainApp constructor completed";
 }
+
+
 
 
 // MainApp::MainApp(QWidget *parent)
@@ -372,8 +373,8 @@ void MainApp::paintEvent(QPaintEvent *event)
 
 void MainApp::on_pushButton_clicked()
 {
-    //QString script_path = "/home/KINGSNEEDTHETERRIBLE/repos/open-meshtastic-monitor/mqtt/start_mqtt.sh";
-    QString usb_path = "/dev/ttyUSB0";   if (meshHandler->isRunning()) {
+    QString usb_path;
+    if (meshHandler->isRunning()) {
         qDebug() << "Stopping the connection..";
         meshHandler->stopMeshtastic();
         ui->pushButton->setText("Start MQTT");
@@ -384,15 +385,6 @@ void MainApp::on_pushButton_clicked()
         ui->pushButton->setEnabled(false);
     }
 }
-
-void MainApp::pipe_test() {
-    qDebug() << "=== TESTING PIPE SYSTEM ===";
-
-    //QProcess::startDetached("/bin/bash", QStringList() << "/home/KINGSNEEDTHETERRIBLE/repos/open-meshtastic-monitor/mqtt/start_mqtt.sh");
-
-}
-
-
 
 void MainApp::onConnectionStateChanged(meshtastic_handler::Connection_Status status) {
     switch (status) {
@@ -438,52 +430,6 @@ void MainApp::onRawDataReceived(const QString& rawData) {
     cursor.movePosition(QTextCursor::End);
     ui->packet_view->setTextCursor(cursor);
 }
-
-// void MainApp::onPacketReceived(const QJsonObject& packet) {
-//     qDebug() << "JSON Packet Received!" << QJsonDocument(packet).toJson(QJsonDocument::Compact);
-
-//     if (packet.isEmpty()) {
-//         qDebug() << "Empty JSON packet received";
-//         return;
-//     }
-
-//     static int packetCount = 0;
-//     packetCount++;
-
-//     QString fromID = packet["fromID"].toString("Unknown");
-//     QString toID = packet["toID"].toString("Unknown");
-//     QJsonObject decoded = packet["decoded"].toObject();
-//     QString portnum = decoded["portnum"].isDouble() ? QString::number(decoded["portnum"].toInt()) : "Unknown";
-//     QString messageText = decoded["text"].toString("");
-//     int rssi = packet["rxRssi"].isDouble() ? packet["rxRssi"].toInt() : 0;
-//     double snr = packet["rxSnr"].isDouble() ? packet["rxSnr"].toDouble() : 0.0;
-
-//     QString displayText;
-//     displayText += QString("=== JSON Packet #%1 ===\n").arg(packetCount);
-//     displayText += QString("From: %1\n").arg(fromID);
-//     displayText += QString("To: %1\n").arg(toID);
-//     if (rssi != 0) {
-//         displayText += QString("RSSI: %1 dBm\n").arg(rssi);
-//     }
-//     if (snr != 0.0) {
-//         displayText += QString("SNR: %1 dB\n").arg(snr);
-//     }
-//     displayText += QString("Port: %1\n").arg(portnum);
-//     if (!messageText.isEmpty()) {
-//         displayText += QString("Message: %1\n").arg(messageText);
-//     }
-//     if (decoded["batteryLevel"].isDouble()) {
-//         displayText += QString("Battery: %1%\n").arg(decoded["batteryLevel"].toInt());
-//     }
-//     if (decoded["latitude"].isDouble() && decoded["longitude"].isDouble()) {
-//         displayText += QString("Position: %1, %2\n")
-//         .arg(decoded["latitude"].toDouble(), 0, 'f', 6)
-//             .arg(decoded["longitude"].toDouble(), 0, 'f', 6);
-//     }
-
-//     ui->packet_view->appendPlainText(displayText);
-// }
-
 
 void MainApp::onPacketReceived(const QJsonObject& packet) {
 
