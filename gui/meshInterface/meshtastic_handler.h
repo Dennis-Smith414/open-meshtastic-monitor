@@ -8,6 +8,8 @@
 #include <QJsonObject>
 #include <QTimer>
 #include <QDebug>
+#include "debug_config.h"
+
 
 //protobuf defines
 #include "meshtastic/mesh.pb.h"

@@ -60,6 +60,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(meshInterface
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        debug_config.h debug_config.cpp
     )
 else()
     if(ANDROID)

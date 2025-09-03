@@ -1,0 +1,22 @@
+
+[info] FULL PACKETDEBUG | ??:??:?? 9047 [RadioIf] Lora RX (id=0x3be6f95d fr=0x433e45e0 to=0xffffffff, WantAck=0, HopLim=3 Ch=0x8 encrypted len=48 rxSNR=6 rxRSSI=-21 hopStart=3 relay=0xe0)
+
+[info] FULL PACKETDEBUG | ??:??:?? 9047 [RadioIf] Packet RX: 591ms
+
+[info] FULL PACKETINFO  | ??:??:?? 9047 [Router] Packet History - insert: Using new slot @uptime 9047.822s TRACE NEW
+
+[info] FULL PACKETDEBUG | ??:??:?? 9047 [Router] Use channel 0 (hash 0x8)
+
+[info] FULL PACKETDEBUG | ??:??:?? 9047 [Router] Expand short PSK #1
+
+[info] FULL PACKETDEBUG | ??:??:?? 9047 [Router] Use AES128 key!
+
+[info] FULL PACKETDEBUG | ??:??:?? 9047 [Router] decoded message (id=0x3be6f95d fr=0x433e45e0 to=0xffffffff, WantAck=0, HopLim=3 Ch=0x0 Portnum=67 rxSNR=6 rxRSSI=-21 hopStart=3 relay=0xe0)
+
+[info] FULL PACKETDEBUG | ??:??:?? 9047 [Router] handleReceived(REMOTE) (id=0x3be6f95d fr=0x433e45e0 to=0xffffffff, WantAck=0, HopLim=3 Ch=0x0 Portnum=67 rxSNR=6 rxRSSI=-21 hopStart=3 relay=0xe0)
+
+[info] FULL PACKETDEBUG | ??:??:?? 9047 [Router] Module 'DeviceTelemetry' wantsPacket=1
+
+[info] FULL PACKETINFO  | ??:??:?? 9047 [Router] Received DeviceTelemetry from=0x433e45e0, id=0x3be6f95d, portnum=67, payloadlen=26
+
+[info] FULL PACKETINFO  | ??:??:?? 9047 [Router] (Received from 45e0): air_util_tx=0.026889, channel_utilization=1.613333, battery_level=93, voltage=4.102000
