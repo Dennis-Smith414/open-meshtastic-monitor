@@ -43,6 +43,8 @@ public slots:
     QJsonObject parseDebugPacket(const QString& logLine);
     void parseTextData(QString logLine);
     void parseBatteryData(QString logLine);
+    void parseSenderData(QString logLine);
+
 
 signals:
     void stateChanged(Connection_Status state);

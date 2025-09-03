@@ -250,6 +250,16 @@ void meshtastic_handler::processData(const QByteArray& data) {
                 parseBatteryData(logLine);
             }
 
+            if (logLine.contains("Received from")) {
+                parseSenderData(logLine);
+            }
+
+            if (logLine.contains("handleReceived")) {
+                //Cheap and easy way to get this information out of the packet
+                //[info] FULL PACKETDEBUG | ??:??:?? 9047 [Router] handleReceived(REMOTE) (id=0x3be6f95d fr=0x433e45e0 to=0xffffffff, WantAck=0, HopLim=3 Ch=0x0 Portnum=67 rxSNR=6 rxRSSI=-21 hopStart=3 relay=0xe0)
+
+            }
+
             if (logLine.contains("Received text msg")) {
                 parseTextData(logLine);
             }
@@ -311,3 +321,30 @@ void meshtastic_handler::parseBatteryData(QString logLine) {
         DEBUG_PACKET("Parsed battery data - Voltage:" << match.captured(3) << "mV, Percent:" << match.captured(4) << "%");
     }
 }
+
+void meshtastic_handler::parseSenderData(QString logLine) {
+    QJsonObject senderData;
+    QRegularExpression senderRegex(R"(\(Received from ([a-fA-F0-9]+)\): air_util_tx=([0-9.]+), channel_utilization=([0-9.]+), battery_level=(\d+), voltage=([0-9.]+))");
+    QRegularExpressionMatch match = senderRegex.match(logLine);
+
+    if (match.hasMatch()) {
+        senderData["fromId"] = match.captured(1);
+        senderData["airUtilTx"] = match.captured(2).toDouble();
+        senderData["channelUtilization"] = match.captured(3).toDouble();
+        senderData["batteryLevel"] = match.captured(4).toInt();
+        senderData["voltage"] = match.captured(5).toDouble();
+
+        DEBUG_PACKET("Parsed sender data - From:" << match.captured(1)
+                                                  << " air_util_tx:" << match.captured(2)
+                                                  << " channel_utilization:" << match.captured(3)
+                                                  << " battery_level:" << match.captured(4)
+                                                  << " voltage:" << match.captured(5));
+    } else {
+        DEBUG_PACKET("No sender data found!");
+        return;
+    }
+    QString senderDataString = QJsonDocument(senderData).toJson(QJsonDocument::Compact);
+    emit logMessage(senderDataString);
+}
+
+
