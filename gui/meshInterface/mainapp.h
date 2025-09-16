@@ -37,9 +37,7 @@ private slots:
     void onPacketReceived(const QJsonObject& packet);
 
     void on_packet_view_updateRequest(const QRect &rect, int dy);
-
-    //raw data recvived
-    void onRawDataReceived(const QString& rawData);
+    void on_debug_check_clicked(bool checked);
 };
 
 #endif // MAINAPP_H

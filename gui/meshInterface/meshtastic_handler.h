@@ -36,15 +36,21 @@ public:
     bool isRunning() const;
     int messageCount() const;
 
+    bool get_debug_status() const {
+        return debug_status;
+    }
+
+    void set_debug_status(bool status) {
+        debug_status = status;
+    }
+
 
 public slots:
     void startMeshtastic(const QString& portName = "");
     void stopMeshtastic();
-    QJsonObject parseDebugPacket(const QString& logLine);
     void parseTextData(QString logLine);
     void parseBatteryData(QString logLine);
     void parseSenderData(QString logLine);
-
 
 signals:
     void stateChanged(Connection_Status state);
@@ -68,6 +74,7 @@ private:
     int msgCount;
     QByteArray dataBuffer;
     void processProtobufPacket(const meshtastic::MeshPacket& packet);
+    bool debug_status;
 };
 
 #endif // MESHTASTIC_HANDLER_H

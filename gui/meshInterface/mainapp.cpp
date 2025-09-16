@@ -87,6 +87,9 @@ void MainApp::on_pushButton_clicked()
     }
 }
 
+//Turn full packet debug on or off
+
+
 //State machine for setting up a connection
 void MainApp::onConnectionStateChanged(meshtastic_handler::Connection_Status status) {
     switch (status) {
@@ -110,5 +113,11 @@ void MainApp::onConnectionStateChanged(meshtastic_handler::Connection_Status sta
         ui->pushButton->setEnabled(true);
         break;
     }
+}
+
+void MainApp::on_debug_check_clicked(bool checked)
+{
+   meshHandler->set_debug_status(checked);
+        //set_debug_status(true);
 }
 

@@ -264,8 +264,11 @@ void meshtastic_handler::processData(const QByteArray& data) {
                 parseTextData(logLine);
             }
 
-            //for quick message debugs
-            //emit logMessage("FULL PACKET" + logLine);
+            //turn on debug logs
+            if (get_debug_status()){
+                emit logMessage("FULL PACKET" + logLine);
+                qDebug() << "Debug checkbox activated";
+            }
         }
     }
 }
