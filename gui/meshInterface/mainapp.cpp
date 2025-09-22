@@ -120,6 +120,5 @@ void MainApp::onConnectionStateChanged(meshtastic_handler::Connection_Status sta
 void MainApp::on_debug_check_clicked(bool checked)
 {
    meshHandler->set_debug_status(checked);
-        //set_debug_status(true);
 }
 

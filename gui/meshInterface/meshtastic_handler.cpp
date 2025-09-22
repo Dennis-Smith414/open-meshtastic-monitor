@@ -256,9 +256,7 @@ void meshtastic_handler::processData(const QByteArray& data) {
             }
 
             if (logLine.contains("handleReceived")) {
-                //Cheap and easy way to get this information out of the packet
-                //[info] FULL PACKETDEBUG | ??:??:?? 9047 [Router] handleReceived(REMOTE) (id=0x3be6f95d fr=0x433e45e0 to=0xffffffff, WantAck=0, HopLim=3 Ch=0x0 Portnum=67 rxSNR=6 rxRSSI=-21 hopStart=3 relay=0xe0)
-
+                parseHandleReceivedData(logLine);
             }
 
             if (logLine.contains("Received text msg")) {
@@ -268,33 +266,163 @@ void meshtastic_handler::processData(const QByteArray& data) {
             //turn on debug logs
             if (get_debug_status()){
                 emit logMessage("DEBUG: " + logLine);
-                qDebug() << "Debug checkbox activated";
             }
         }
     }
 }
 
+
+QString meshtastic_handler::getPortnumString(int portnum) {
+    switch (portnum) {
+    case 0: return "UNKNOWN_APP";
+    case 1: return "TEXT_MESSAGE_APP";
+    case 3: return "POSITION_APP";
+    case 4: return "NODEINFO_APP";
+    case 6: return "ROUTING_APP";
+    case 7: return "ADMIN_APP";
+    case 8: return "TEXT_MESSAGE_COMPRESSED_APP";
+    case 9: return "WAYPOINT_APP";
+    case 64: return "SERIAL_APP";
+    case 65: return "STORE_FORWARD_APP";
+    case 66: return "RANGE_TEST_APP";
+    case 67: return "TELEMETRY_APP";
+    case 68: return "ZPS_APP";
+    case 69: return "SIMULATOR_APP";
+    default: return QString("UNKNOWN_%1").arg(portnum);
+    }
+}
+
+void meshtastic_handler::parseHandleReceivedData(QString logLine) {
+    DEBUG_PACKET("parseHandleReceivedData called with:" << logLine);
+
+    // Update regex to capture transport field
+    QRegularExpression handleReceivedRegex(R"(handleReceived\([^)]*\)\s*\(id=0x([a-fA-F0-9]+)\s+fr=0x([a-fA-F0-9]+)\s+to=0x([a-fA-F0-9]+)[^,]*,\s*transport\s*=\s*(\d+)[^,]*,\s*WantAck=(\d+)[^,]*,\s*HopLim=(\d+)[^,]*Ch=0x([a-fA-F0-9]+)[^,]*Portnum=(\d+)(?:[^,]*rxtime=(\d+))?(?:[^,]*rxSNR=(-?\d+(?:\.\d+)?))?(?:[^,]*rxRSSI=(-?\d+))?(?:[^,]*hopStart=(\d+))?)");
+
+    QRegularExpressionMatch match = handleReceivedRegex.match(logLine);
+    if (match.hasMatch()) {
+        QString messageId = match.captured(1);
+
+        // Convert to decimal
+        bool ok;
+        qint64 id = messageId.toULongLong(&ok, 16);
+        qint64 from = match.captured(2).toULongLong(&ok, 16);
+        qint64 to = match.captured(3).toULongLong(&ok, 16);
+
+        QJsonObject packetData;
+        packetData["from"] = from;
+        packetData["to"] = to;
+        packetData["id"] = id;
+        packetData["rxTime"] = match.captured(9).isEmpty() ? QJsonValue(QJsonValue::Null) : match.captured(9).toLongLong();
+        packetData["rxSnr"] = match.captured(10).isEmpty() ? QJsonValue(QJsonValue::Null) : match.captured(10).toDouble();
+        packetData["rxRssi"] = match.captured(11).isEmpty() ? QJsonValue(QJsonValue::Null) : match.captured(11).toInt();
+        packetData["hopLimit"] = match.captured(6).toInt();
+        packetData["hopStart"] = match.captured(12).isEmpty() ? 3 : match.captured(12).toInt();
+        packetData["fromId"] = QString("!%1").arg(from, 8, 16, QChar('0'));
+        packetData["toId"] = (to == 0xffffffff) ? "^all" : QString("!%1").arg(to, 8, 16, QChar('0'));
+
+        int transport = match.captured(4).toInt();
+        int portnum = match.captured(8).toInt();
+
+        if (portnum == 1) {
+            // TEXT MESSAGE - store for later merging, don't emit yet
+            packetData["transport"] = transport;
+            pendingPackets[messageId] = packetData;
+            DEBUG_PACKET("Stored TEXT packet for merging with message ID:" << messageId);
+        } else {
+            // NON-TEXT MESSAGE - emit immediately with decoded section
+            QJsonObject decoded;
+            decoded["portnum"] = getPortnumString(portnum);
+            decoded["text"] = QJsonValue(QJsonValue::Null);
+            decoded["bitfield"] = transport;
+            decoded["latitude"] = QJsonValue(QJsonValue::Null);
+            decoded["longitude"] = QJsonValue(QJsonValue::Null);
+            decoded["altitude"] = QJsonValue(QJsonValue::Null);
+            decoded["batteryLevel"] = QJsonValue(QJsonValue::Null);
+
+            packetData["decoded"] = decoded;
+
+            QString packetDataString = QJsonDocument(packetData).toJson(QJsonDocument::Compact);
+            //emit logMessage(packetDataString, "packet");
+        }
+    }
+}
+
+// void meshtastic_handler::parseTextData(QString logLine) {
+//     DEBUG_PACKET("parseTextData called with:" << logLine);
+//     QJsonObject textData;
+
+//     QRegularExpression textMsgRegex("Received text msg from=0x([a-fA-F0-9]+), id=0x([a-fA-F0-9]+), msg=(.+)$");
+//     QRegularExpressionMatch match = textMsgRegex.match(logLine);
+//     if (match.hasMatch()) {
+//         textData["fromId"] = match.captured(1);
+//         textData["messageId"] = match.captured(2);
+//         QString cleanText = match.captured(3);
+//         cleanText = cleanText.remove('\r').remove('\n').trimmed();
+//         textData["text"] = cleanText;
+//         QDateTime currentTime = QDateTime::currentDateTime();
+//         textData["timestamp"] = currentTime.toString("yyyy-MM-dd hh:mm:ss");
+//         textData["timestampMs"] = currentTime.toMSecsSinceEpoch();
+
+//         DEBUG_PACKET("Parsed text message - From:" << match.captured(1) << "Text:" << cleanText);
+//     }
+
+//     QString textDataString = QJsonDocument(textData).toJson(QJsonDocument::Compact);
+//     emit logMessage(textDataString);
+// }
+
 void meshtastic_handler::parseTextData(QString logLine) {
     DEBUG_PACKET("parseTextData called with:" << logLine);
-    QJsonObject textData;
 
     QRegularExpression textMsgRegex("Received text msg from=0x([a-fA-F0-9]+), id=0x([a-fA-F0-9]+), msg=(.+)$");
     QRegularExpressionMatch match = textMsgRegex.match(logLine);
+
     if (match.hasMatch()) {
-        textData["fromId"] = match.captured(1);
-        textData["messageId"] = match.captured(2);
-        QString cleanText = match.captured(3);
-        cleanText = cleanText.remove('\r').remove('\n').trimmed();
-        textData["text"] = cleanText;
-        QDateTime currentTime = QDateTime::currentDateTime();
-        textData["timestamp"] = currentTime.toString("yyyy-MM-dd hh:mm:ss");
-        textData["timestampMs"] = currentTime.toMSecsSinceEpoch();
+        QString messageId = match.captured(2);
+        QString cleanText = match.captured(3).remove('\r').remove('\n').trimmed();
 
-        DEBUG_PACKET("Parsed text message - From:" << match.captured(1) << "Text:" << cleanText);
+        // Check if we have stored packet data for this message ID
+        if (pendingPackets.contains(messageId)) {
+            // Get the stored packet data and remove it from pending
+            QJsonObject packetData = pendingPackets.take(messageId);
+
+            // Build the decoded section with text message data
+            QJsonObject decoded;
+            decoded["portnum"] = "TEXT_MESSAGE_APP";
+            decoded["text"] = cleanText;
+            decoded["bitfield"] = packetData["transport"].toInt();
+            decoded["latitude"] = QJsonValue(QJsonValue::Null);
+            decoded["longitude"] = QJsonValue(QJsonValue::Null);
+            decoded["altitude"] = QJsonValue(QJsonValue::Null);
+            decoded["batteryLevel"] = QJsonValue(QJsonValue::Null);
+
+            // Add decoded section to packet data
+            packetData["decoded"] = decoded;
+
+            // Remove the transport field since it's now in bitfield
+            packetData.remove("transport");
+
+            // Output the complete merged JSON
+            QString finalJson = QJsonDocument(packetData).toJson(QJsonDocument::Compact);
+            emit logMessage(finalJson, "packet");
+
+            DEBUG_PACKET("Merged complete packet for message ID:" << messageId << "Text:" << cleanText);
+
+        } else {
+            // Fallback: no stored packet data found, output text-only data
+            QJsonObject textOnly;
+            textOnly["fromId"] = match.captured(1);
+            textOnly["messageId"] = messageId;
+            textOnly["text"] = cleanText;
+            QDateTime currentTime = QDateTime::currentDateTime();
+            textOnly["timestamp"] = currentTime.toString("yyyy-MM-dd hh:mm:ss");
+            textOnly["timestampMs"] = currentTime.toMSecsSinceEpoch();
+
+            QString textOnlyJson = QJsonDocument(textOnly).toJson(QJsonDocument::Compact);
+            emit logMessage(textOnlyJson, "info");
+
+            DEBUG_PACKET("No stored packet data for message ID:" << messageId << ", output text-only");
+        }
     }
-
-    QString textDataString = QJsonDocument(textData).toJson(QJsonDocument::Compact);
-    emit logMessage(textDataString);
 }
 
 void meshtastic_handler::parseBatteryData(QString logLine) {

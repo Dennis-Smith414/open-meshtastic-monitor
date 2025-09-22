@@ -51,6 +51,7 @@ public slots:
     void parseTextData(QString logLine);
     void parseBatteryData(QString logLine);
     void parseSenderData(QString logLine);
+    void parseHandleReceivedData(QString logLine);
 
 signals:
     void stateChanged(Connection_Status state);
@@ -75,6 +76,8 @@ private:
     QByteArray dataBuffer;
     void processProtobufPacket(const meshtastic::MeshPacket& packet);
     bool debug_status;
+    QMap<QString, QJsonObject> pendingPackets;
+    QString getPortnumString(int portnum);
 };
 
 #endif // MESHTASTIC_HANDLER_H
