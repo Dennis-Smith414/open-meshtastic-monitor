@@ -19,6 +19,8 @@ MainApp::MainApp(QWidget *parent)
     //main constuctor
     ui->setupUi(this);
 
+    //set debug mode to off on start up (Do this in the constuctor as well)
+    ui->debug_check->setChecked(false);
     //Dynamically resize window
     QScreen *screen = QGuiApplication::primaryScreen();
     if (screen) {

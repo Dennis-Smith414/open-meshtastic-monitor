@@ -181,6 +181,7 @@ void meshtastic_handler::onSerialError(QSerialPort::SerialPortError error)
         ERROR_PRINT("Processing serial error, changing state to Error");
         currentState = Error;
         DEBUG_CONNECTION("Error state set and signals emitted");
+        emit logMessage("Connection Error!");
     } else {
         DEBUG_SERIAL("No error condition, ignoring");
     }
@@ -266,7 +267,7 @@ void meshtastic_handler::processData(const QByteArray& data) {
 
             //turn on debug logs
             if (get_debug_status()){
-                emit logMessage("FULL PACKET" + logLine);
+                emit logMessage("DEBUG: " + logLine);
                 qDebug() << "Debug checkbox activated";
             }
         }
