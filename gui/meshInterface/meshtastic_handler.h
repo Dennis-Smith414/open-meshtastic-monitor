@@ -55,10 +55,11 @@ public slots:
 
 signals:
     void stateChanged(Connection_Status state);
-    void packetReceived(const QJsonObject& packet);
+    // void packetReceived(const QJsonObject& packet);sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
     void logMessage(const QString& message, const QString& level = "info");
     void errorOccurred(const QString& error);
-    void rawDataReceived(const QString& rawData);
+   // void rawDataReceived(const QString&(const QString& msg);
+    void logBattery(const QString& msg);
 
 private slots:
     void onSerialDataReady();
@@ -78,6 +79,11 @@ private:
     bool debug_status;
     QMap<QString, QJsonObject> pendingPackets;
     QString getPortnumString(int portnum);
+
+    int prev_battery_status;
+    int cur_battery_status;
 };
+
+
 
 #endif // MESHTASTIC_HANDLER_H

@@ -47,6 +47,17 @@
      </widget>
     </item>
     <item>
+     <widget class="QLabel" name="battery_status_label">
+      <property name="styleSheet">
+       <string notr="true">font: 9pt &quot;Sans Serif&quot;;
+color:rgb(0, 255, 127)</string>
+      </property>
+      <property name="text">
+       <string>Battery: </string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QPlainTextEdit" name="packet_view">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -80,6 +91,10 @@
     </item>
     <item>
      <widget class="QCheckBox" name="debug_check">
+      <property name="styleSheet">
+       <string notr="true">font: 9pt &quot;Sans Serif&quot;;
+color:rgb(0, 255, 127)</string>
+      </property>
       <property name="text">
        <string>Packet Debug</string>
       </property>

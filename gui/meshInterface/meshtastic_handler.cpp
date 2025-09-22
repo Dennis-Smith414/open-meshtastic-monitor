@@ -42,6 +42,9 @@ void meshtastic_handler::startMeshtastic(const QString& portName)
     DEBUG_CONNECTION("startMeshtastic() called with portName:" << portName);
     DEBUG_CONNECTION("Current serial port state - isOpen:" << serialPort->isOpen());
 
+    prev_battery_status = 0;
+    cur_battery_status = 0;
+
     if (serialPort->isOpen()) {
         WARNING_PRINT("Serial port already open, aborting connection attempt");
         return;
@@ -437,6 +440,13 @@ void meshtastic_handler::parseBatteryData(QString logLine) {
         int batteryVoltage = match.captured(3).toInt();
         int batteryPercent = match.captured(4).toInt();
 
+        cur_battery_status = batteryPercent;
+
+        if (prev_battery_status != cur_battery_status) {
+            QString battery_status= QString::number(batteryPercent);
+            emit logBattery(battery_status);
+        }
+
         // Convert to more readable values
         double voltageVolts = batteryVoltage / 1000.0;
         QString chargingStatus = (isCharging == 1) ? "charging" : "not_charging";
@@ -448,6 +458,8 @@ void meshtastic_handler::parseBatteryData(QString logLine) {
                                   .arg(voltageVolts, 0, 'f', 2)
                                   .arg(chargingStatus)
                                   .arg(powerSource);
+
+        prev_battery_status = cur_battery_status;
 
         emit logMessage(batteryInfo);
         DEBUG_PACKET("Parsed battery data - Voltage:" << match.captured(3) << "mV, Percent:" << match.captured(4) << "%");

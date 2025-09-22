@@ -53,6 +53,18 @@ MainApp::MainApp(QWidget *parent)
             qDebug() << "ERROR: packet_view is null in logMessage lambda!";
         }
     });
+
+    connect(meshHandler, &meshtastic_handler::logBattery, this, [this](const QString& msg) {
+        QString new_read = "Battery: " + msg + "%";
+        qDebug() << "Updating battery status: " << new_read;
+        qDebug() << "adding the battery thing";
+        if (ui->battery_status_label) {
+             ui->battery_status_label->setText(new_read);
+        } else {
+            qDebug() << "ERROR: noting in battery field";
+        }
+    });
+
 }
 
 MainApp::~MainApp()
