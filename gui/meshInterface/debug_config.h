@@ -13,7 +13,7 @@ public:
 #define ENABLE_DEBUG_PRINT false
 #define ENABLE_DEBUG_SERIAL false
 #define ENABLE_DEBUG_PACKET false
-#define ENABLE_DEBUG_CONNECTION false
+#define ENABLE_DEBUG_CONNECTION true
 #define ENABLE_DEBUG_MESH false
 
 #if ENABLE_DEBUG_PRINT

@@ -34,10 +34,8 @@ signals:
 private slots:
     void on_pushButton_clicked();
     void onConnectionStateChanged(meshtastic_handler::Connection_Status status);
-    void onPacketReceived(const QJsonObject& packet);
-
-    void on_packet_view_updateRequest(const QRect &rect, int dy);
     void on_debug_check_clicked(bool checked);
+    void on_clear_terminal_button_clicked();
 };
 
 #endif // MAINAPP_H

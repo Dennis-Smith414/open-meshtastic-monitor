@@ -60,6 +60,7 @@ signals:
     void errorOccurred(const QString& error);
    // void rawDataReceived(const QString&(const QString& msg);
     void logBattery(const QString& msg);
+    void logNodesOnline(const QString& num_nodes);
 
 private slots:
     void onSerialDataReady();
@@ -79,9 +80,13 @@ private:
     bool debug_status;
     QMap<QString, QJsonObject> pendingPackets;
     QString getPortnumString(int portnum);
-
+    void parsePositionData(QString logLine);
+    void parseUpdatePosition(QString logLine);
+    void parseNodeStatus(QString logLine);
     int prev_battery_status;
     int cur_battery_status;
+    int prev_nodes_num;
+    int cur_nodes_num;
 };
 
 

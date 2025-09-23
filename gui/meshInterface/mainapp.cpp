@@ -41,6 +41,8 @@ MainApp::MainApp(QWidget *parent)
 
     // Signal connections
     //State signal
+    connect(ui->debug_check, &QCheckBox::toggled, this, &MainApp::on_debug_check_clicked);
+
     connect(meshHandler, &meshtastic_handler::stateChanged, this, &MainApp::onConnectionStateChanged);
 
     //Log message signal
@@ -62,6 +64,13 @@ MainApp::MainApp(QWidget *parent)
              ui->battery_status_label->setText(new_read);
         } else {
             qDebug() << "ERROR: noting in battery field";
+        }
+    });
+
+    connect(meshHandler, &meshtastic_handler::logNodesOnline, this, [this](const QString& num) {
+        QString new_num = "Nodes Online: " + num;
+        if (ui->nodes_online) {
+            ui->nodes_online->setText(new_num);
         }
     });
 
@@ -106,23 +115,30 @@ void MainApp::on_pushButton_clicked()
 
 //State machine for setting up a connection
 void MainApp::onConnectionStateChanged(meshtastic_handler::Connection_Status status) {
+
+    qDebug() << "onConnectionStateChanged called with status:" << status;
     switch (status) {
     case meshtastic_handler::Disconnected:
+         qDebug() << "Setting button to 'Start Packet View'";
         ui->pushButton->setText("Start Packet View");
         ui->pushButton->setEnabled(true);
         break;
 
     case meshtastic_handler::Connecting:
-        ui->pushButton->setText("Stop Packet View");
+         qDebug() << "Setting button to 'Connecting'";
+        ui->pushButton->setText("Connecting");
         ui->pushButton->setEnabled(true);
         break;
 
     case meshtastic_handler::Connected:
-        ui->pushButton->setText("Stop Packet View");
+        qDebug() << "Setting button to 'Stop Packet View'";
+        ui->pushButton->setText("");
         ui->pushButton->setEnabled(true);
+
         break;
 
     case meshtastic_handler::Error:
+         qDebug() << "Setting button to 'Error: Retry Connection'";
         ui->pushButton->setText("Error: Retry Connection");
         ui->pushButton->setEnabled(true);
         break;
@@ -132,5 +148,11 @@ void MainApp::onConnectionStateChanged(meshtastic_handler::Connection_Status sta
 void MainApp::on_debug_check_clicked(bool checked)
 {
    meshHandler->set_debug_status(checked);
+}
+
+
+void MainApp::on_clear_terminal_button_clicked()
+{
+    ui->packet_view->clear();
 }
 

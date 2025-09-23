@@ -3,7 +3,7 @@
 #include <QFile>
 
 meshtastic_handler::meshtastic_handler(QObject* parent)
-    : QObject(parent), currentState(Disconnected), msgCount(0)
+    : QObject(parent), currentState(Disconnected), msgCount(0), debug_status(false)
 {
     serialPort = new QSerialPort(this);
     connect(serialPort, &QSerialPort::readyRead, this, &meshtastic_handler::onSerialDataReady);
@@ -52,7 +52,10 @@ void meshtastic_handler::startMeshtastic(const QString& portName)
 
     DEBUG_CONNECTION("Setting state to Connecting");
     currentState = Connecting;
+    emit stateChanged(currentState);
     DEBUG_CONNECTION("State changed signal emitted: Connecting");
+
+
 
     QString port = portName;
     if (port.isEmpty()) {
@@ -61,6 +64,7 @@ void meshtastic_handler::startMeshtastic(const QString& portName)
         if (port.isEmpty()) {
             ERROR_PRINT("No Meshtastic device found during auto-detection");
             currentState = Error;
+            emit stateChanged(currentState);
             DEBUG_CONNECTION("Error state set and signals emitted");
             return;
         }
@@ -90,12 +94,14 @@ void meshtastic_handler::startMeshtastic(const QString& portName)
                                                 << "Baud:" << serialPort->baudRate()
                                                 << "IsOpen:" << serialPort->isOpen());
         currentState = Connected;
+        emit stateChanged(currentState);
         DEBUG_CONNECTION("State changed to Connected, signals emitted");
     } else {
         ERROR_PRINT("Failed to open serial port");
         ERROR_PRINT("Error string:" << serialPort->errorString());
         ERROR_PRINT("Error code:" << serialPort->error());
         currentState = Error;
+        emit stateChanged(currentState);
         DEBUG_CONNECTION("Error state set and signals emitted");
     }
 }
@@ -266,6 +272,18 @@ void meshtastic_handler::processData(const QByteArray& data) {
                 parseTextData(logLine);
             }
 
+            if (logLine.contains("updatePosition REMOTE")) {
+                parseUpdatePosition(logLine);
+            }
+
+            if (logLine.contains("node=")) {
+                parsePositionData(logLine);
+            }
+
+            if (logLine.contains("Node status update:")) {
+                parseNodeStatus(logLine);
+            }
+
             //turn on debug logs
             if (get_debug_status()){
                 emit logMessage("DEBUG: " + logLine);
@@ -292,6 +310,38 @@ QString meshtastic_handler::getPortnumString(int portnum) {
     case 68: return "ZPS_APP";
     case 69: return "SIMULATOR_APP";
     default: return QString("UNKNOWN_%1").arg(portnum);
+    }
+}
+
+void meshtastic_handler::parseNodeStatus(QString logLine) {
+    DEBUG_PACKET("parseNodeStatus called with:" << logLine);
+
+    QRegularExpression nodeStatusRegex(R"(Node status update:\s*(\d+)\s*online,\s*(\d+)\s*total)");
+    QRegularExpressionMatch match = nodeStatusRegex.match(logLine);
+
+    if (match.hasMatch()) {
+        int onlineNodes = match.captured(1).toInt();
+        int totalNodes = match.captured(2).toInt();
+
+        QJsonObject nodeStatus;
+        nodeStatus["onlineNodes"] = onlineNodes;
+        nodeStatus["totalNodes"] = totalNodes;
+        nodeStatus["type"] = "NODE_STATUS";
+
+        if (prev_nodes_num != cur_nodes_num) {
+            QString final_num = QString::number(onlineNodes);
+            emit logNodesOnline(final_num);
+        }
+
+        QDateTime currentTime = QDateTime::currentDateTime();
+        nodeStatus["timestamp"] = currentTime.toString("yyyy-MM-dd hh:mm:ss");
+
+        QString nodeJson = QJsonDocument(nodeStatus).toJson(QJsonDocument::Compact);
+        emit logMessage(nodeJson, "nodes");
+
+        prev_nodes_num = cur_nodes_num;
+
+        DEBUG_PACKET("Node Status - Online:" << onlineNodes << "Total:" << totalNodes);
     }
 }
 
@@ -461,8 +511,70 @@ void meshtastic_handler::parseBatteryData(QString logLine) {
 
         prev_battery_status = cur_battery_status;
 
-        emit logMessage(batteryInfo);
+        //emit logMessage(batteryInfo); <-----Commented for now add this to a seperate screen for battery info
         DEBUG_PACKET("Parsed battery data - Voltage:" << match.captured(3) << "mV, Percent:" << match.captured(4) << "%");
+    }
+}
+
+void meshtastic_handler::parsePositionData(QString logLine) {
+    DEBUG_PACKET("parsePositionData called with:" << logLine);
+
+    QRegularExpression positionRegex(R"(POSITION node=([a-fA-F0-9]+)[^=]*lat=(-?\d+)[^=]*lon=(-?\d+)[^=]*msl=(\d+))");
+    QRegularExpressionMatch match = positionRegex.match(logLine);
+
+    if (match.hasMatch()) {
+        QString nodeId = match.captured(1);
+        double latitude = match.captured(2).toDouble() / 10000000.0;
+        double longitude = match.captured(3).toDouble() / 10000000.0;
+        int altitude = match.captured(4).toInt();
+
+        // Create position JSON object
+        QJsonObject positionData;
+        positionData["nodeId"] = QString("!%1").arg(nodeId);
+        positionData["latitude"] = latitude;
+        positionData["longitude"] = longitude;
+        positionData["altitude"] = altitude;
+        positionData["type"] = "POSITION";
+
+        QDateTime currentTime = QDateTime::currentDateTime();
+        positionData["timestamp"] = currentTime.toString("yyyy-MM-dd hh:mm:ss");
+        positionData["timestampMs"] = currentTime.toMSecsSinceEpoch();
+
+        QString positionJson = QJsonDocument(positionData).toJson(QJsonDocument::Compact);
+        emit logMessage(positionJson, "position");
+
+        DEBUG_PACKET("GPS - Node:" << nodeId << "Lat:" << latitude << "Lon:" << longitude << "Alt:" << altitude);
+    }
+}
+
+void meshtastic_handler::parseUpdatePosition(QString logLine) {
+    DEBUG_PACKET("parseUpdatePosition called with:" << logLine);
+    qDebug() << "UPDATE POSITION PARSER CALLED WITH:" << logLine;
+
+    QRegularExpression updatePosRegex(R"(updatePosition\s+REMOTE\s+node=0x([a-fA-F0-9]+)\s+time=(\d+)\s+lat=(-?\d+)\s+lon=(-?\d+))");
+    QRegularExpressionMatch match = updatePosRegex.match(logLine);
+
+    if (match.hasMatch()) {
+        QString nodeId = match.captured(1);
+        double latitude = match.captured(3).toDouble() / 10000000.0;
+        double longitude = match.captured(4).toDouble() / 10000000.0;
+
+        QJsonObject positionData;
+        positionData["nodeId"] = QString("!%1").arg(nodeId);
+        positionData["latitude"] = latitude;
+        positionData["longitude"] = longitude;
+        positionData["type"] = "POSITION";
+
+        QDateTime currentTime = QDateTime::currentDateTime();
+        positionData["timestamp"] = currentTime.toString("yyyy-MM-dd hh:mm:ss");
+
+        QString positionJson = QJsonDocument(positionData).toJson(QJsonDocument::Compact);
+        emit logMessage(positionJson, "position");
+
+        DEBUG_PACKET("GPS Update - Node:" << nodeId << "Lat:" << latitude << "Lon:" << longitude);
+        qDebug() << "EMITTED POSITION JSON:" << positionJson;
+    } else {
+        qDebug() << "REGEX DID NOT MATCH updatePosition line";
     }
 }
 
