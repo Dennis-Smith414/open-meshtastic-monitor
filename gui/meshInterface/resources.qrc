@@ -5,6 +5,6 @@
         <file>topo-map1.jpeg</file>
     </qresource>
     <qresource prefix="/">
-        <file>bulid/map.html</file>
+        <file>map.html</file>
     </qresource>
 </RCC>

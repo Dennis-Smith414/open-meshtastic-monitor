@@ -96,26 +96,17 @@ void MainApp::paintEvent(QPaintEvent *event)
 }
 
 void MainApp::setupMap() {
-    mapView = new QWebEngineView(ui->Map); // or whatever your map tab is named
+    mapView = new QWebEngineView(ui->Map);
 
-    // Load the HTML file
-    QString mapPath = QApplication::applicationDirPath() + "/map.html";
-    //mapView->load(QUrl::fromLocalFile(mapPath));
-
-    qDebug() << "Looking for map file at:" << mapPath;
-
-    QString appPath = QApplication::applicationDirPath();
-    qDebug() << "Application directory:" << appPath;
-    //qDebug() << "File exists:" << QFile::exists(mapPath);
-
-    // Create layout for the map tab
+    //make layout for the map tab
     QVBoxLayout* mapLayout = new QVBoxLayout(ui->Map);
-    //mapView->load(QUrl::fromLocalFile(mapPath));
-    mapView->load(QUrl(":/bulid/map.html"));
-    mapLayout->setContentsMargins(0, 0, 0 , 0);
+    mapLayout->addWidget(mapView);
+    mapLayout->setContentsMargins(0, 0, 0, 0);
+
+    mapView->load(QUrl("https://dnstech.xyz/"));
+    //mapView->load(QUrl(":/bulid/map.html"));
 }
 
-//Init the connection should be moved to a setting screen on or off could be a saved stae
 void MainApp::on_pushButton_clicked()
 {
     QString usb_path;

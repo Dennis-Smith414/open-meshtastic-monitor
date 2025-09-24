@@ -73,6 +73,7 @@ set(PROJECT_SOURCES
 add_executable(meshInterface
     ${PROJECT_SOURCES}
     resources.qrc
+    map.html
 )
 
 # Enable Qt6 automoc, autorcc, autouic for the target
