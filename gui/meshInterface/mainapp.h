@@ -5,6 +5,8 @@
 #include <QMainWindow>
 #include <QPaintEvent>
 #include <QResizeEvent>
+#include <QWebEngineView>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -27,6 +29,8 @@ private:
     void updateConnectionStatusDisplay();
     QTimer *timer;
     void createGpsInfoWidget();
+    QWebEngineView* mapView;
+void setupMap();
     //void moveBackground();
 
 signals:

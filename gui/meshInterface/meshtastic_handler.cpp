@@ -337,7 +337,7 @@ void meshtastic_handler::parseNodeStatus(QString logLine) {
         nodeStatus["timestamp"] = currentTime.toString("yyyy-MM-dd hh:mm:ss");
 
         QString nodeJson = QJsonDocument(nodeStatus).toJson(QJsonDocument::Compact);
-        emit logMessage(nodeJson, "nodes");
+       // emit logMessage(nodeJson, "nodes");
 
         prev_nodes_num = cur_nodes_num;
 
@@ -569,7 +569,7 @@ void meshtastic_handler::parseUpdatePosition(QString logLine) {
         positionData["timestamp"] = currentTime.toString("yyyy-MM-dd hh:mm:ss");
 
         QString positionJson = QJsonDocument(positionData).toJson(QJsonDocument::Compact);
-        emit logMessage(positionJson, "position");
+        emit logMessage(positionJson, "\r\n + position");
 
         DEBUG_PACKET("GPS Update - Node:" << nodeId << "Lat:" << latitude << "Lon:" << longitude);
         qDebug() << "EMITTED POSITION JSON:" << positionJson;

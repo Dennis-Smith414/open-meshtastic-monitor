@@ -4,4 +4,7 @@
         <file>topo-map.jpeg</file>
         <file>topo-map1.jpeg</file>
     </qresource>
+    <qresource prefix="/">
+        <file>bulid/map.html</file>
+    </qresource>
 </RCC>

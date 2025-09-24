@@ -49,7 +49,7 @@ MainApp::MainApp(QWidget *parent)
     connect(meshHandler, &meshtastic_handler::logMessage, this, [this](const QString& msg, const QString& level) {
         qDebug() << "Log message received: [" << level << "]" << msg;
         if (ui->packet_view) {
-            ui->packet_view->appendPlainText(QString("[%1] %2").arg(level).arg(msg));
+            ui->packet_view->appendPlainText(QString("[%1] %2\r\n").arg(level).arg(msg));
        //     qDebug() << "Appended log message to packet_view";
         } else {
             qDebug() << "ERROR: packet_view is null in logMessage lambda!";
@@ -74,6 +74,7 @@ MainApp::MainApp(QWidget *parent)
         }
     });
 
+    setupMap();
 }
 
 MainApp::~MainApp()
@@ -94,6 +95,26 @@ void MainApp::paintEvent(QPaintEvent *event)
     painter.drawPixmap(0, 0, scaledBackground);
 }
 
+void MainApp::setupMap() {
+    mapView = new QWebEngineView(ui->Map); // or whatever your map tab is named
+
+    // Load the HTML file
+    QString mapPath = QApplication::applicationDirPath() + "/map.html";
+    //mapView->load(QUrl::fromLocalFile(mapPath));
+
+    qDebug() << "Looking for map file at:" << mapPath;
+
+    QString appPath = QApplication::applicationDirPath();
+    qDebug() << "Application directory:" << appPath;
+    //qDebug() << "File exists:" << QFile::exists(mapPath);
+
+    // Create layout for the map tab
+    QVBoxLayout* mapLayout = new QVBoxLayout(ui->Map);
+    //mapView->load(QUrl::fromLocalFile(mapPath));
+    mapView->load(QUrl(":/bulid/map.html"));
+    mapLayout->setContentsMargins(0, 0, 0 , 0);
+}
+
 //Init the connection should be moved to a setting screen on or off could be a saved stae
 void MainApp::on_pushButton_clicked()
 {
@@ -111,7 +132,6 @@ void MainApp::on_pushButton_clicked()
 }
 
 //Turn full packet debug on or off
-
 
 //State machine for setting up a connection
 void MainApp::onConnectionStateChanged(meshtastic_handler::Connection_Status status) {
@@ -149,7 +169,6 @@ void MainApp::on_debug_check_clicked(bool checked)
 {
    meshHandler->set_debug_status(checked);
 }
-
 
 void MainApp::on_clear_terminal_button_clicked()
 {

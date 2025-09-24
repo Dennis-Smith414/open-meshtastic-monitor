@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Explicitly look for Qt6 components
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql SerialPort)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql SerialPort WebEngineWidgets)
 
 # Modern protobuf finding
 find_package(Protobuf REQUIRED)
@@ -72,6 +72,7 @@ set(PROJECT_SOURCES
 # Create executable
 add_executable(meshInterface
     ${PROJECT_SOURCES}
+    resources.qrc
 )
 
 # Enable Qt6 automoc, autorcc, autouic for the target
@@ -88,6 +89,7 @@ target_link_libraries(meshInterface PRIVATE
     absl::log
     absl::log_internal_format
     absl::log_internal_globals
+    Qt6::WebEngineWidgets
 )
 
 # Set target properties for Qt6

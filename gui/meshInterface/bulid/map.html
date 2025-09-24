@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Meshtastic Nodes Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map { 
+            height: 100vh; 
+            width: 100%;
+        }
+        .node-popup {
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([42.8605, -88.3163], 13);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        // Store markers for updating
+        var nodeMarkers = {};
+        
+        // Custom icons
+        var homeIcon = L.icon({
+            iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwIDIwVjE0SDEwVjIwWk0xNCAyMFYxNEgxNFYyMFpNMTIgM0wyMCAxMUgyMFY5TDEyIDFMNCA5VjExSDIwTDEyIDNaIiBmaWxsPSIjMDA3RkZGIi8+Cjwvc3ZnPgo=',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32]
+        });
+        
+        var nodeIcon = L.icon({
+            iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNGRjAwMDAiLz4KPC9zdmc+Cg==',
+            iconSize: [24, 24],
+            iconAnchor: [12, 24],
+            popupAnchor: [0, -24]
+        });
+        
+        // Function to add or update a node marker
+        function updateNodeMarker(nodeId, lat, lon, isHome = false) {
+            var popupContent = `
+                <div class="node-popup">
+                    <strong>Node: ${nodeId}</strong><br>
+                    Lat: ${lat.toFixed(6)}<br>
+                    Lon: ${lon.toFixed(6)}<br>
+                    ${isHome ? '<em>Home Device</em>' : '<em>Remote Node</em>'}
+                </div>
+            `;
+            
+            if (nodeMarkers[nodeId]) {
+                // Update existing marker
+                nodeMarkers[nodeId].setLatLng([lat, lon]);
+                nodeMarkers[nodeId].setPopupContent(popupContent);
+            } else {
+                // Create new marker
+                var marker = L.marker([lat, lon], {
+                    icon: isHome ? homeIcon : nodeIcon
+                }).addTo(map);
+                
+                marker.bindPopup(popupContent);
+                nodeMarkers[nodeId] = marker;
+                
+                // Auto-fit map to show all markers
+                if (Object.keys(nodeMarkers).length > 1) {
+                    var group = new L.featureGroup(Object.values(nodeMarkers));
+                    map.fitBounds(group.getBounds().pad(0.1));
+                }
+            }
+        }
+        
+        // Function to be called from Qt
+        window.addNode = function(nodeId, lat, lon, isHome) {
+            updateNodeMarker(nodeId, lat, lon, isHome);
+        };
+        
+        // Function to clear all markers
+        window.clearNodes = function() {
+            for (var nodeId in nodeMarkers) {
+                map.removeLayer(nodeMarkers[nodeId]);
+            }
+            nodeMarkers = {};
+        };
+    </script>
+</body>
+</html>
