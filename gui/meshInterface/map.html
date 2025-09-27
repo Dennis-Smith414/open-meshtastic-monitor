@@ -1,13 +1,87 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Test Map</title>
+    <title>Meshtastic Nodes Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello from HTML!</h1>
-    <p>If you can see this, Qt resources are working.</p>
-    <div style="width: 100%; height: 400px; background-color: blue;">
-        <p style="color: white; padding: 20px;">This blue box should show up</p>
-    </div>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map this should be change to center on the users current position ot a node
+        var map = L.map('map').setView([42.8605, -88.3163], 10);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        var nodeMarkers = {};
+
+        // Function to add or update
+        function addNode(nodeId, lat, lon, isNewNode) {
+            console.log('Adding node:', nodeId, 'at', lat, lon);
+
+            // Remove existing marker if it exists
+            if (nodeMarkers[nodeId]) {
+                map.removeLayer(nodeMarkers[nodeId]);
+            }
+
+            // Create new marker
+            var marker = L.marker([lat, lon]).addTo(map);
+
+            // Create popup content
+            var popupContent = '<b>Node: ' + nodeId + '</b><br>' +
+                              'Latitude: ' + lat.toFixed(6) + '<br>' +
+                              'Longitude: ' + lon.toFixed(6) + '<br>' +
+                              'Last Update: ' + new Date().toLocaleString();
+
+            marker.bindPopup(popupContent);
+
+            // Store marker
+            nodeMarkers[nodeId] = marker;
+
+            if (isNewNode || Object.keys(nodeMarkers).length === 1) {
+                map.setView([lat, lon], 12);
+            }
+
+            return true;
+        }
+
+        // Remove a node from the map
+        function removeNode(nodeId) {
+            if (nodeMarkers[nodeId]) {
+                map.removeLayer(nodeMarkers[nodeId]);
+                delete nodeMarkers[nodeId];
+                console.log('Removed node:', nodeId);
+                return true;
+            }
+            return false;
+        }
+
+        // Get all nodes
+        function getAllNodes() {
+            return Object.keys(nodeMarkers);
+        }
+
+        // Center map on all nodes
+        function fitAllNodes() {
+            var markers = Object.values(nodeMarkers);
+            if (markers.length > 0) {
+                var group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        window.mapReady = true;
+        console.log('Map initialized and ready');
+    </script>
 </body>
 </html>

@@ -61,6 +61,7 @@ signals:
    // void rawDataReceived(const QString&(const QString& msg);
     void logBattery(const QString& msg);
     void logNodesOnline(const QString& num_nodes);
+    void positionUpdate(const QString& nodeId, double lat, double lon);
 
 private slots:
     void onSerialDataReady();

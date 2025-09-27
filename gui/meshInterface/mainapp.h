@@ -30,7 +30,11 @@ private:
     QTimer *timer;
     void createGpsInfoWidget();
     QWebEngineView* mapView;
-void setupMap();
+    void setupMap();
+    bool mapReady = false;
+    void updateNodeOnMap(const QString& nodeId, double lat, double lon);
+    void checkMapReady();
+    void onPositionUpdate(const QString& nodeId, double lat, double lon);
     //void moveBackground();
 
 signals:
@@ -40,6 +44,7 @@ private slots:
     void onConnectionStateChanged(meshtastic_handler::Connection_Status status);
     void on_debug_check_clicked(bool checked);
     void on_clear_terminal_button_clicked();
+    void onMapLoadFinished(bool success);
 };
 
 #endif // MAINAPP_H

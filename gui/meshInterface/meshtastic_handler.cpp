@@ -556,6 +556,7 @@ void meshtastic_handler::parseUpdatePosition(QString logLine) {
 
     if (match.hasMatch()) {
         QString nodeId = match.captured(1);
+                qDebug() << "GPS UPDATE from node:" << nodeId << "at" << QTime::currentTime();
         double latitude = match.captured(3).toDouble() / 10000000.0;
         double longitude = match.captured(4).toDouble() / 10000000.0;
 
@@ -569,7 +570,9 @@ void meshtastic_handler::parseUpdatePosition(QString logLine) {
         positionData["timestamp"] = currentTime.toString("yyyy-MM-dd hh:mm:ss");
 
         QString positionJson = QJsonDocument(positionData).toJson(QJsonDocument::Compact);
-        emit logMessage(positionJson, "\r\n + position");
+        emit logMessage(positionJson, "position");
+
+        emit positionUpdate(QString("!%1").arg(nodeId), latitude, longitude);
 
         DEBUG_PACKET("GPS Update - Node:" << nodeId << "Lat:" << latitude << "Lon:" << longitude);
         qDebug() << "EMITTED POSITION JSON:" << positionJson;

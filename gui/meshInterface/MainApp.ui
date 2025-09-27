@@ -29,15 +29,22 @@
    <layout class="QGridLayout" name="gridLayout">
     <item row="1" column="0" rowspan="2">
      <widget class="QTabWidget" name="tabWidget">
+      <property name="font">
+       <font>
+        <bold>false</bold>
+        <hintingpreference>PreferDefaultHinting</hintingpreference>
+       </font>
+      </property>
       <property name="styleSheet">
-       <string notr="true">background-color: rgb(43, 43, 43);</string>
+       <string notr="true">background-color: rgb(43, 43, 43);
+color:rgb(0, 255, 127)</string>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
-        <string>Tab 1</string>
+        <string>Packet Monitor</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
@@ -70,7 +77,7 @@ color:rgb(0, 255, 127)</string>
          <widget class="QLabel" name="nodes_online">
           <property name="font">
            <font>
-            <pointsize>12</pointsize>
+            <pointsize>10</pointsize>
            </font>
           </property>
           <property name="styleSheet">
@@ -169,7 +176,7 @@ color:rgb(0, 255, 127)</string>
       </widget>
       <widget class="QWidget" name="Map">
        <attribute name="title">
-        <string>Tab 2</string>
+        <string>Map</string>
        </attribute>
       </widget>
      </widget>

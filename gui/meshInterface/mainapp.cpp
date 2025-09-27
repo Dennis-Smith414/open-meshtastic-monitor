@@ -47,7 +47,7 @@ MainApp::MainApp(QWidget *parent)
 
     //Log message signal
     connect(meshHandler, &meshtastic_handler::logMessage, this, [this](const QString& msg, const QString& level) {
-        qDebug() << "Log message received: [" << level << "]" << msg;
+        qDebug() << "Log message received: [" << level << "]" << msg + "\r\n";
         if (ui->packet_view) {
             ui->packet_view->appendPlainText(QString("[%1] %2\r\n").arg(level).arg(msg));
        //     qDebug() << "Appended log message to packet_view";
@@ -66,6 +66,9 @@ MainApp::MainApp(QWidget *parent)
             qDebug() << "ERROR: noting in battery field";
         }
     });
+
+    connect(meshHandler, &meshtastic_handler::positionUpdate,
+            this, &MainApp::onPositionUpdate);
 
     connect(meshHandler, &meshtastic_handler::logNodesOnline, this, [this](const QString& num) {
         QString new_num = "Nodes Online: " + num;
@@ -98,13 +101,17 @@ void MainApp::paintEvent(QPaintEvent *event)
 void MainApp::setupMap() {
     mapView = new QWebEngineView(ui->Map);
 
-    //make layout for the map tab
+    // Wait for page to load before allowing map updates
+    connect(mapView, &QWebEngineView::loadFinished, [this](bool ok) {
+        qDebug() << "Map loaded successfully:" << ok;
+        mapReady = ok;
+    });
+
     QVBoxLayout* mapLayout = new QVBoxLayout(ui->Map);
     mapLayout->addWidget(mapView);
     mapLayout->setContentsMargins(0, 0, 0, 0);
 
-    mapView->load(QUrl("https://dnstech.xyz/"));
-    //mapView->load(QUrl(":/bulid/map.html"));
+    mapView->load(QUrl("qrc:/map.html"));
 }
 
 void MainApp::on_pushButton_clicked()
@@ -120,6 +127,92 @@ void MainApp::on_pushButton_clicked()
         ui->pushButton->setText("Connecting...");
         ui->pushButton->setEnabled(false);
     }
+}
+
+void MainApp::onMapLoadFinished(bool success) {
+    if (success) {
+        qDebug() << "Map loaded, injecting addNode function...";
+
+        // Inject the addNode function directly
+        QString addNodeFunction = R"(
+            var nodeMarkers = {};
+
+            function addNode(nodeId, lat, lon, isNewNode) {
+                console.log('Adding node:', nodeId, 'at', lat, lon);
+
+                if (nodeMarkers[nodeId]) {
+                    map.removeLayer(nodeMarkers[nodeId]);
+                }
+
+                var marker = L.marker([lat, lon]).addTo(map);
+
+                var popupContent = '<b>Node: ' + nodeId + '</b><br>' +
+                                  'Latitude: ' + lat.toFixed(6) + '<br>' +
+                                  'Longitude: ' + lon.toFixed(6) + '<br>' +
+                                  'Last Update: ' + new Date().toLocaleString();
+
+                marker.bindPopup(popupContent);
+                nodeMarkers[nodeId] = marker;
+
+                if (isNewNode || Object.keys(nodeMarkers).length === 1) {
+                    map.setView([lat, lon], 12);
+                }
+
+                return true;
+            }
+
+            window.mapReady = true;
+            console.log('addNode function injected and map ready');
+        )";
+
+        mapView->page()->runJavaScript(addNodeFunction, [this](const QVariant &result) {
+            QTimer::singleShot(500, [this]() {
+                checkMapReady();
+            });
+        });
+    } else {
+        qDebug() << "Failed to load map HTML";
+    }
+}
+
+void MainApp::onPositionUpdate(const QString& nodeId, double lat, double lon) {
+    qDebug() << "MainApp received position update for" << nodeId << "at" << lat << "," << lon;
+    updateNodeOnMap(nodeId, lat, lon);
+}
+
+void MainApp::updateNodeOnMap(const QString& nodeId, double lat, double lon) {
+    if (!mapReady) {
+        qDebug() << "Map not ready yet, skipping update for node:" << nodeId;
+        return;
+    }
+
+    QString jsCode = QString("addNode('%1', %2, %3, false);")
+                         .arg(nodeId)
+                         .arg(lat, 0, 'f', 6)
+                         .arg(lon, 0, 'f', 6);
+
+    qDebug() << "Executing JS:" << jsCode;
+    mapView->page()->runJavaScript(jsCode, [nodeId](const QVariant &result) {
+        if (result.toBool()) {
+            qDebug() << "Successfully added/updated node:" << nodeId;
+        } else {
+            qDebug() << "Failed to add/update node:" << nodeId;
+        }
+    });
+}
+
+void MainApp::checkMapReady() {
+    mapView->page()->runJavaScript("window.mapReady", [this](const QVariant &result) {
+        if (result.toBool()) {
+            mapReady = true;
+            qDebug() << "Map is ready for updates";
+        } else {
+            qDebug() << "Map not yet ready, checking again...";
+            QTimer::singleShot(1000, [this]() {
+                checkMapReady();
+            });
+        }
+    });
 }
 
 //Turn full packet debug on or off
