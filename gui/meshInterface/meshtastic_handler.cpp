@@ -1,6 +1,8 @@
 #include "meshtastic_handler.h"
 #include "debug_config.h"
 #include <QFile>
+#include <QEventLoop>
+#include <QTimer>
 
 meshtastic_handler::meshtastic_handler(QObject* parent)
     : QObject(parent), currentState(Disconnected), msgCount(0), debug_status(false)
@@ -54,8 +56,6 @@ void meshtastic_handler::startMeshtastic(const QString& portName)
     currentState = Connecting;
     emit stateChanged(currentState);
     DEBUG_CONNECTION("State changed signal emitted: Connecting");
-
-
 
     QString port = portName;
     if (port.isEmpty()) {

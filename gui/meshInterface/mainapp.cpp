@@ -10,6 +10,9 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QTextStream>
 
 MainApp::MainApp(QWidget *parent)
     : QMainWindow{parent}
@@ -19,7 +22,6 @@ MainApp::MainApp(QWidget *parent)
     //main constuctor
     ui->setupUi(this);
 
-    //set debug mode to off on start up (Do this in the constuctor as well)
     ui->debug_check->setChecked(false);
     //Dynamically resize window
     QScreen *screen = QGuiApplication::primaryScreen();
@@ -56,6 +58,7 @@ MainApp::MainApp(QWidget *parent)
         }
     });
 
+    //Battery life signal
     connect(meshHandler, &meshtastic_handler::logBattery, this, [this](const QString& msg) {
         QString new_read = "Battery: " + msg + "%";
         qDebug() << "Updating battery status: " << new_read;
@@ -76,6 +79,11 @@ MainApp::MainApp(QWidget *parent)
             ui->nodes_online->setText(new_num);
         }
     });
+
+    connect(ui->pushButton, &QPushButton::clicked, this, [this]() {
+        qDebug() << "BUTTON CLICKED - Current text:" << ui->pushButton->text();
+    });
+
 
     setupMap();
 }
@@ -120,12 +128,10 @@ void MainApp::on_pushButton_clicked()
     if (meshHandler->isRunning()) {
         qDebug() << "Stopping the connection..";
         meshHandler->stopMeshtastic();
-        ui->pushButton->setText("Start MQTT");
+        ui->pushButton->setText("Start Packet View");
     } else {
         qDebug() << "Starting the connection";
         meshHandler->startMeshtastic(usb_path);
-        ui->pushButton->setText("Connecting...");
-        ui->pushButton->setEnabled(false);
     }
 }
 
@@ -220,10 +226,8 @@ void MainApp::checkMapReady() {
 //State machine for setting up a connection
 void MainApp::onConnectionStateChanged(meshtastic_handler::Connection_Status status) {
 
-    qDebug() << "onConnectionStateChanged called with status:" << status;
     switch (status) {
     case meshtastic_handler::Disconnected:
-         qDebug() << "Setting button to 'Start Packet View'";
         ui->pushButton->setText("Start Packet View");
         ui->pushButton->setEnabled(true);
         break;
@@ -235,14 +239,13 @@ void MainApp::onConnectionStateChanged(meshtastic_handler::Connection_Status sta
         break;
 
     case meshtastic_handler::Connected:
-        qDebug() << "Setting button to 'Stop Packet View'";
-        ui->pushButton->setText("");
+        ui->pushButton->setText("Stop Packet View");
         ui->pushButton->setEnabled(true);
-
+        ui->battery_status_label->setText("Battery: loading...");
+        ui->nodes_online->setText("Nodes Online: loading...");
         break;
 
     case meshtastic_handler::Error:
-         qDebug() << "Setting button to 'Error: Retry Connection'";
         ui->pushButton->setText("Error: Retry Connection");
         ui->pushButton->setEnabled(true);
         break;
@@ -257,5 +260,23 @@ void MainApp::on_debug_check_clicked(bool checked)
 void MainApp::on_clear_terminal_button_clicked()
 {
     ui->packet_view->clear();
+}
+
+void MainApp::on_saveButton_clicked() {
+    QString log = ui->packet_view->toPlainText();
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "", tr("Text Files (*.txt);;All Files (*)"));
+
+    if (fileName.isEmpty()) {
+        return;
+    }
+    QFile file(fileName);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&file);
+        out << log;
+        file.close();
+        QMessageBox::information(this, tr("Success"), tr("File saved successfully!"));
+    } else {
+        QMessageBox::critical(this, tr("Error"), tr("Could not open file!."));
+    }
 }
 

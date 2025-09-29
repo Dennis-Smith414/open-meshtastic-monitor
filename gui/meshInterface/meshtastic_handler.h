@@ -55,7 +55,7 @@ public slots:
 
 signals:
     void stateChanged(Connection_Status state);
-    // void packetReceived(const QJsonObject& packet);sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
+    // void packetReceived(const QJsonObject& packet);
     void logMessage(const QString& message, const QString& level = "info");
     void errorOccurred(const QString& error);
    // void rawDataReceived(const QString&(const QString& msg);

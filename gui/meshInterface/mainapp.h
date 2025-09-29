@@ -45,6 +45,7 @@ private slots:
     void on_debug_check_clicked(bool checked);
     void on_clear_terminal_button_clicked();
     void onMapLoadFinished(bool success);
+    void on_saveButton_clicked();
 };
 
 #endif // MAINAPP_H

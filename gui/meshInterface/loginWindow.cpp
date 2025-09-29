@@ -26,20 +26,16 @@ MainWindow::MainWindow(QWidget *parent)
     if (userDatabase->getAllUsers().isEmpty()) {
         qDebug() << "No users found. Creating default users...";
 
-        // Add your existing user
-        userDatabase->addUser("dennis", "1923");
-
         // Add an admin user
         userDatabase->addUser("admin", "admin");
 
         QMessageBox::information(this, "First Run",
                                  "Default users created:\n"
-                                 "dennis / 1923\n"
                                  "admin / admin\n\n"
                                  "Database initialized successfully!");
     }
 
-    qDebug() << "Database ready with" << userDatabase->getAllUsers().size() << "users";
+   // qDebug() << "Database ready with" << userDatabase->getAllUsers().size() << "users";
 
 }
 

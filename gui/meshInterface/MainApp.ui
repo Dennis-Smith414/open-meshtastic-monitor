@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>298</width>
-    <height>374</height>
+    <height>414</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -50,7 +50,7 @@ color:rgb(0, 255, 127)</string>
         <item>
          <widget class="QLabel" name="label">
           <property name="text">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700; font-style:italic; color:#2ec27e;&quot;&gt;Open Mesh Monitor&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt; font-weight:700; font-style:italic; color:#2ec27e;&quot;&gt;V420&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:12pt; font-weight:700; font-style:italic; color:#2ec27e;&quot;&gt;Open Mesh Monitor&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:12pt; font-weight:700; font-style:italic; color:#2ec27e;&quot;&gt;v0.1.0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
          </widget>
         </item>
@@ -144,6 +144,13 @@ background-color: rgba(0, 0, 0, 100);</string>
           </property>
           <property name="text">
            <string>Clear Terminal</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="saveButton">
+          <property name="text">
+           <string>Save Log File</string>
           </property>
          </widget>
         </item>
